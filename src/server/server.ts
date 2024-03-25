@@ -5,6 +5,7 @@ import { Route } from './interface'
 import webpack from 'webpack'
 import webpackConfig from '../../webpack.config.dev'
 import webpackDevMiddleware from 'webpack-dev-middleware'
+import errorHandler from './middleware/error-handler'
 
 dotenv.config()
 const port = process.env.PORT || 8080
@@ -25,6 +26,7 @@ if (process.env.NODE_ENV === 'production') {
 // Routes
 app.use('/healthcheck', (req: Request, res: Response) => res.sendStatus(200))
 routes.forEach(({ path, router }: Route) => app.use(path, router))
+app.use(errorHandler)
 
 app.listen(port, () => {
 	console.log(`[server] listening on http://localhost:${port}`)
