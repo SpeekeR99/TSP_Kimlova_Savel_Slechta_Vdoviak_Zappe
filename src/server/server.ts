@@ -6,6 +6,8 @@ import webpack from 'webpack'
 import webpackConfig from '../../webpack.config.dev'
 import webpackDevMiddleware from 'webpack-dev-middleware'
 import errorHandler from './middleware/error-handler'
+import path from 'path'
+const DIST_DIR = path.resolve(__dirname, '../../')
 
 dotenv.config()
 const port = process.env.PORT || 8080
@@ -14,7 +16,7 @@ const app: Express = express()
 app.use(express.json())
 
 if (process.env.NODE_ENV === 'production') {
-	// nothing yet
+	app.use(express.static(DIST_DIR))
 } else {
 	const compiler = webpack(webpackConfig)
 	const wdMiddleware = webpackDevMiddleware(compiler)
