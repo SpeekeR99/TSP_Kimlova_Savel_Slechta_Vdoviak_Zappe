@@ -7,3 +7,7 @@ dist
 .vscode
 
 dist
+
+.idea
+
+ai/src/output.pdf
