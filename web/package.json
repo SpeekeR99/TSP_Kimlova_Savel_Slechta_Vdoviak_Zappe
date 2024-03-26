@@ -4,7 +4,7 @@
 	"description": "",
 	"scripts": {
 		"test": "echo \"Error: no test specified\" && exit 1",
-		"build": "tsc && webpack --config ./webpack.config.ts",
+		"build": "tsc && webpack --config webpack.config.ts",
 		"start": "NODE_ENV=production node dist/src/server/server.js",
 		"start:dev": "NODE_ENV=development nodemon",
 		"start:prod": "npm run build && npm run start"
