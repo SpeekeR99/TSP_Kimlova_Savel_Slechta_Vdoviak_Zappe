@@ -9,9 +9,8 @@ variables:
 
 default:
   image: alpine:3.17
-  # kiv gitlab runners - apply after test run on gitlab
-  # tags:
-  # - kiv
+  tags:
+  - kiv
 
 
 stages:
