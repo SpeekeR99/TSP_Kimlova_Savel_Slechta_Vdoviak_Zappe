@@ -1,0 +1,76 @@
+variables:
+  IMAGE_NODE: node:18.18-alpine
+  IMAGE_PUBLISH: "curlimages/curl:7.86.0"
+  PACKAGE_NAME: "web-dist"
+  WEB_DIR: "web"
+  WEB_BUILD_DIR: $WEB_DIR/dist
+  WEB_ARCHIVE_NAME: "web-template"
+  WEB_ARCHIVE_DIR: "packaged"
+
+default:
+  image: alpine:3.17
+  tags:
+  - kiv
+
+
+stages:
+  - test
+  - build
+  - template
+  - publish
+  - deploy
+
+test-unit-web:
+  stage: test
+  image: $IMAGE_NODE
+  script:
+    - cd $WEB_DIR
+    - npm install
+    - npm run test
+
+build-web:
+  stage: build
+  image: $IMAGE_NODE
+  script:
+    - cd $WEB_DIR
+    - npm install
+    - npm run build
+  artifacts:
+    paths:
+      - $WEB_BUILD_DIR
+    expire_in: 1 day
+
+package-templates-zip:
+  stage: template
+  variables:
+      ARCHIVE_PATH: $WEB_ARCHIVE_DIR/$WEB_ARCHIVE_NAME.zip
+  before_script:
+    - "apk add zip"
+  script:
+    - "mkdir -p $WEB_ARCHIVE_DIR"
+    - "zip -r $ARCHIVE_PATH $WEB_BUILD_DIR"
+  artifacts:
+    paths:
+      - $ARCHIVE_PATH
+    expire_in: 1 day
+  dependencies:
+    - build-web
+
+publish-templates:
+  stage: publish
+  image: $IMAGE_PUBLISH
+  script:
+    - ./scripts/publish-build.sh $WEB_ARCHIVE_DIR $PACKAGE_NAME
+  dependencies:
+    - package-templates-zip
+  rules:
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+    - if: $CI_COMMIT_TAG
+    - when: manual
+
+deploy-production:
+  stage: deploy
+  script:
+    - echo "We do not have any environment to deploy to, yet, silly! Doing nothing..."
+  when: manual
+  environment: production
