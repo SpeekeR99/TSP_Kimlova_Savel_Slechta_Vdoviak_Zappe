@@ -2,6 +2,7 @@ import cv2
 import matplotlib.pyplot as plt
 import fitz
 import numpy as np
+import skimage.filters.thresholding as th
 
 IMG_FOLDER = 'tsp_zaznamove_archy'
 
@@ -38,23 +39,57 @@ def show_images(titles, images):
     plt.show()
 
 
-def threshold_OTSU(image):
+def threshold_OTSU(image, threshold):
     """
     Apply OTSU thresholding to the image
     :param image: grayscale image
+    :param threshold: threshold value
     :return: thresholded image
     """
-    _, thresh = cv2.threshold(image, 170, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
+    _, thresh = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
     return thresh
+
+
+def threshold_to_zero(image, threshold):
+    """
+    Apply thresholding to zero to the image
+    :param image: grayscale image
+    :param threshold: threshold value
+    :return: thresholded image
+    """
+    _, thresh = cv2.threshold(image, threshold, 255, cv2.THRESH_TOZERO)
+    return thresh
+
+def threshold_yen(image, threshold):
+    """
+    Apply Yen thresholding to the image
+    :param image: grayscale image
+    :param threshold: threshold value (not used)
+    :return: thresholded image
+    """
+    thresh = th.threshold_yen(image)
+    return image > thresh
+
+def threshold_mean(image, threshold):
+    """
+    Apply mean thresholding to the image
+    :param image: grayscale image
+    :param threshold: threshold value (not used)
+    :return: thresholded image
+    """
+    thresh = th.threshold_mean(image)
+    return image > thresh
+
 
 generated_sheet = load_pdf(f'{IMG_FOLDER}/vygenerovany.pdf')[0]
 scanned_empty = load_pdf(f'{IMG_FOLDER}/naskenovany_prazdny.pdf')[0]
 scanned_filled = load_pdf(f'{IMG_FOLDER}/naskenovany_vyplneny.pdf')[0]
-print(generated_sheet.shape)
-show_images(['generated_sheet', 'scanned_empty', 'scanned_filled'], [generated_sheet, scanned_empty, scanned_filled])
 
 
-# plot histogram of the filled image
 gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
-threshed_filled = threshold_OTSU(gray_filled)
-show_images(['scanned_filled', 'threshed_filled'], [scanned_filled, threshed_filled])
+gray_filled = cv2.GaussianBlur(gray_filled, (5, 5), 0)
+
+threshold = 170
+threshold_opts = [threshold_OTSU, threshold_to_zero, threshold_yen, threshold_mean]
+thresh_images = [threshold_fun(gray_filled, threshold) for threshold_fun in threshold_opts]
+show_images([f'{threshold.__name__}' for threshold in threshold_opts], thresh_images)
