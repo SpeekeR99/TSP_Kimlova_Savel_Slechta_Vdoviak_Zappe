@@ -9,8 +9,8 @@ class BubbleSheet:
     def __init__(self):
         # Constants
         self.MAIN_COLOR = "black"
-        self.OFF_COLOR = "#eeeeee"
-        self.TEXT_COLOR = "lightgray"
+        self.OFF_COLOR = "lightgray"
+        self.TEXT_COLOR = "gray"
         self.RECT_WIDTH = 2
 
     def draw_rect(self, ax, rect_x, rect_y, width, height, grid_x, grid_y, rect_color=None,
@@ -168,15 +168,13 @@ def main():
     # Define the second answer field
     # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
     x = x + width + offset_between_rect * 1.5
-    width += 0.05
 
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x + 2, grid_y, big_label="Answers")
-    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x + 2, grid_y, q_label, a_label + ["F", "G"])
+    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y, big_label="Answers")
+    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.04, a_offset=0.03)
 
     # Define the third answer field
     # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
     x = x + width + offset_between_rect * 1.5
-    width -= 0.05
 
     bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y)
     bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.04, a_offset=0.03)
