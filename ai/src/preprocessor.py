@@ -48,7 +48,7 @@ def threshold_OTSU(image, threshold):
     :param threshold: threshold value
     :return: thresholded image
     """
-    _, threshed = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY + cv2.THRESH_OTSU)
+    _, threshed = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return threshed
 
 
@@ -60,7 +60,7 @@ def threshold_to_zero(image, threshold):
     :return: thresholded image
     """
     _, threshed = cv2.threshold(image, threshold, 255, cv2.THRESH_TOZERO)
-    return threshed
+    return cv2.bitwise_not(threshed)
 
 
 def threshold_yen(image, threshold):
@@ -71,7 +71,8 @@ def threshold_yen(image, threshold):
     :return: thresholded image
     """
     thresh = th.threshold_yen(image)
-    return image > thresh
+    threshed = image > thresh
+    return cv2.bitwise_not(np.array(threshed, dtype=np.uint8))
 
 
 def threshold_mean(image, threshold):
@@ -82,7 +83,8 @@ def threshold_mean(image, threshold):
     :return: thresholded image
     """
     thresh = th.threshold_mean(image)
-    return image > thresh
+    threshed = image > thresh
+    return cv2.bitwise_not(np.array(threshed, dtype=np.uint8))
 
 
 def threshold_kapur(image, threshold):
@@ -94,7 +96,7 @@ def threshold_kapur(image, threshold):
     """
     th = putils.kapur_threshold(image)
     threshed = putils.apply_threshold(image, th)
-    return threshed
+    return cv2.bitwise_not(threshed)
 
 
 
@@ -128,7 +130,7 @@ show_images(['generated_sheet', 'scanned_empty', 'scanned_filled'], [generated_s
 
 # plot histogram of the filled image
 gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
-threshed_filled = threshold_OTSU(gray_filled)
+threshed_filled = threshold_OTSU(gray_filled, 170)
 # show_images(['scanned_filled', 'threshed_filled'], [scanned_filled, threshed_filled])
 
 contours = find_contours(threshed_filled)
@@ -157,7 +159,7 @@ how_many_circles = [100, 100, 100, 40]
 for i, subimage in enumerate(subimages):
     # for each image, find circles
     gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
-    threshed = threshold_OTSU(gray)
+    threshed = threshold_OTSU(gray, 170)
     contours = find_contours(threshed)
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i] + 1]
     circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
