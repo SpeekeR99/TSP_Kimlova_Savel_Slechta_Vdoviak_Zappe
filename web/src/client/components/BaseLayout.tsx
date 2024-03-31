@@ -1,6 +1,5 @@
 import React, { Fragment, ReactNode } from 'react'
 import { AppBar, Typography, Toolbar, Box } from '@mui/material'
-import MyDropzone from './MyDropZone'
 
 interface BaseLayoutProps {
 	children?: ReactNode
@@ -39,7 +38,6 @@ const Header = () => (
 const BaseLayout = ({ children }: BaseLayoutProps) => (
 	<>
 		{<Header />}
-		<MyDropzone />
 		{children}
 		<Footer />
 	</>
