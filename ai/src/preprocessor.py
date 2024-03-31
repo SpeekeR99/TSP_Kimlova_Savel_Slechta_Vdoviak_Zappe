@@ -6,7 +6,8 @@ import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
 
-IMG_FOLDER = 'tsp_zaznamove_archy'
+IMG_FOLDER = "tsp_zaznamove_archy"
+INPUT_FILE = "naskenovany_vyplneny.pdf"
 
 
 def load_pdf(file_path):
@@ -36,13 +37,13 @@ def show_images(titles, images):
     if len(images) == 1:
         axs = [axs]
     for ax, title, image in zip(axs, titles, images):
-        ax.imshow(image, cmap='gray' if len(image.shape) == 2 else None)
+        ax.imshow(image, cmap="gray" if len(image.shape) == 2 else None)
         ax.set_title(title)
-        ax.axis('off')
+        ax.axis("off")
     plt.show()
 
 
-def threshold_OTSU(image, threshold):
+def threshold_otsu(image, threshold=170):
     """
     Apply OTSU thresholding to the image
     :param image: Grayscale image
@@ -53,7 +54,7 @@ def threshold_OTSU(image, threshold):
     return threshed
 
 
-def threshold_to_zero(image, threshold):
+def threshold_to_zero(image, threshold=170):
     """
     Apply thresholding to zero to the image
     :param image: Grayscale image
@@ -64,11 +65,10 @@ def threshold_to_zero(image, threshold):
     return cv2.bitwise_not(threshed)
 
 
-def threshold_yen(image, threshold):
+def threshold_yen(image):
     """
     Apply Yen thresholding to the image
     :param image: Grayscale image
-    :param threshold: Threshold value (not used)
     :return: Thresholded image
     """
     thresh = th.threshold_yen(image)
@@ -76,11 +76,10 @@ def threshold_yen(image, threshold):
     return cv2.bitwise_not(np.array(threshed, dtype=np.uint8))
 
 
-def threshold_mean(image, threshold):
+def threshold_mean(image):
     """
     Apply mean thresholding to the image
     :param image: Grayscale image
-    :param threshold: Threshold value (not used)
     :return: Thresholded image
     """
     thresh = th.threshold_mean(image)
@@ -88,11 +87,10 @@ def threshold_mean(image, threshold):
     return cv2.bitwise_not(np.array(threshed, dtype=np.uint8))
 
 
-def threshold_kapur(image, threshold):
+def threshold_kapur(image):
     """
     Apply Kapur thresholding to the image
     :param image: Grayscale image
-    :param threshold: Threshold value (not used)
     :return: Thresholded image
     """
     th = putils.kapur_threshold(image)
@@ -120,9 +118,9 @@ def find_edges(image):
     return edges
 
 
-scanned_filled = load_pdf(f'{IMG_FOLDER}/naskenovany_vyplneny.pdf')[0]
+scanned_filled = load_pdf(f"{IMG_FOLDER}/{INPUT_FILE}")[0]
 gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
-threshed_filled = threshold_OTSU(gray_filled, 170)
+threshed_filled = threshold_otsu(gray_filled, 170)
 
 # Find the big boxes around the answer bubbles
 contours = find_contours(threshed_filled)
@@ -160,7 +158,7 @@ for i, subimage in enumerate(subimages):
 
     # Find contours of circles
     gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
-    threshed = threshold_OTSU(gray, 170)
+    threshed = threshold_otsu(gray, 170)
     contours = find_contours(threshed)
     # Find specified number of circles
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
@@ -172,7 +170,7 @@ for i, subimage in enumerate(subimages):
 
     # Threshold the subimage
     threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
-    threshed_subimage = threshold_mean(threshed_subimage, 170)
+    threshed_subimage = threshold_mean(threshed_subimage)
 
     # TODO: this will probably be redone with a configure file in the future (connect to generator)
     # But for now, ID has 4 columns, but answers have 5 columns
