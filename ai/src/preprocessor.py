@@ -120,81 +120,98 @@ def find_edges(image):
     return edges
 
 
-generated_sheet = load_pdf(f'{IMG_FOLDER}/vygenerovany.pdf')[0]
-scanned_empty = load_pdf(f'{IMG_FOLDER}/naskenovany_prazdny.pdf')[0]
 scanned_filled = load_pdf(f'{IMG_FOLDER}/naskenovany_vyplneny.pdf')[0]
-# print(generated_sheet.shape)
-# show_images(['generated_sheet', 'scanned_empty', 'scanned_filled'], [generated_sheet, scanned_empty, scanned_filled])
-
-
-# plot histogram of the filled image
 gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
 threshed_filled = threshold_OTSU(gray_filled, 170)
-# show_images(['scanned_filled', 'threshed_filled'], [scanned_filled, threshed_filled])
 
+# Find the big boxes around the answer bubbles
 contours = find_contours(threshed_filled)
-# pick k largest contours
+# Pick k largest contours
+# TODO: this will probably be redone with a configure file in the future (connect to generator)
 k = 4
 contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
-# draw contours
-contour_image = cv2.drawContours(scanned_filled.copy(), contours, -1, (0, 255, 0), 2)
-# show_images(['scanned_filled', 'contour_image'], [scanned_filled, contour_image])
 
+# Create subimages from the big boxes
 subimages = []
 for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)
-    # print(x, y, w, h)
-    x += 20
-    y += 20
-    w -= 40
-    h -= 40
+
+    # Throw away 1% of the border of the image
+    diff = w / 100 if w > h else h / 100
+    x += diff
+    y += diff
+    w -= 2 * diff
+    h -= 2 * diff
+
     subimage = scanned_filled[y:y+h, x:x+w]
     subimages.append(subimage)
 
-# show_images(['subimage1', 'subimage2', 'subimage3', 'subimage4'], subimages)
-
+# Detect filled bubbles
 answers = []
 
+# Number of circles in each subimage
+# TODO: this will probably be redone with a configure file in the future (connect to generator)
 how_many_circles = [100, 100, 100, 40]
+
+# For each big box
 for i, subimage in enumerate(subimages):
+    # Create array for answers
     answers.append([])
-    # for each image, find circles
+
+    # Find contours of circles
     gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
     threshed = threshold_OTSU(gray, 170)
     contours = find_contours(threshed)
+    # Find specified number of circles
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
+    # Sort them top to bottom, for easier processing
     contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
+
+    # Just for showcase purposes
     circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
 
+    # Threshold the subimage
     threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
     threshed_subimage = threshold_mean(threshed_subimage, 170)
 
+    # TODO: this will probably be redone with a configure file in the future (connect to generator)
+    # But for now, ID has 4 columns, but answers have 5 columns
     if i != len(subimages) - 1:
         num_col = 5
     else:
         num_col = 4
 
+    # Iterate over the circles
     for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
+        # Sort the contours from left to right
         subcontours = imutils.contours.sort_contours(contours[j:j + num_col])[0]
+        # Create array for answers
         answers[i].append([])
 
+        # Iterate over the subcontours
         for bubble in subcontours:
+            # Find the bounding box of the bubble
             (x, y, w, h) = cv2.boundingRect(bubble)
+
+            # Just for showcase purposes
             cv2.rectangle(circle_image, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
+            # Find the bubble subimage and convert it to grayscale
             bubble_subimage = threshed_subimage[y:y+h, x:x+w]
             one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
 
+            # Count the number of white pixels and the total number of pixels
             pixels = cv2.countNonZero(one_channel)
             num_pixels = w * h
 
-            # print(pixels, num_pixels)
-
+            # We found out that the circle often takes up around 40-50% of the area
+            # So if the whole area is at least 75% filled, the student probably tried to at least fill the circle
             if pixels > 0.75 * num_pixels:
                 answers[i][q].append(1)
             else:
                 answers[i][q].append(0)
 
+    # Show the images (just for showcase purposes)
     show_images([f'subimage{i+1}', f'threshed_subimage{i+1}', f'circle_image{i+1}'], [subimage, threshed_subimage, circle_image])
-
+    # Print the answers (just for showcase purposes)
     print(answers[i])
