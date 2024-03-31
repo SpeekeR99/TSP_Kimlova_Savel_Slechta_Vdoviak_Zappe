@@ -137,7 +137,7 @@ for contour in contours:
     x, y, w, h = cv2.boundingRect(contour)
 
     # Throw away 1% of the border of the image
-    diff = w / 100 if w > h else h / 100
+    diff = w // 100 if w > h else h // 100
     x += diff
     y += diff
     w -= 2 * diff
@@ -199,9 +199,11 @@ for i, subimage in enumerate(subimages):
             # Find the bubble subimage and convert it to grayscale
             bubble_subimage = threshed_subimage[y:y+h, x:x+w]
             one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
+            # Close the image using morphological operations
+            closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
 
             # Count the number of white pixels and the total number of pixels
-            pixels = cv2.countNonZero(one_channel)
+            pixels = cv2.countNonZero(closed)
             num_pixels = w * h
 
             # We found out that the circle often takes up around 40-50% of the area
