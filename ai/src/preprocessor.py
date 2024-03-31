@@ -1,9 +1,10 @@
+import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import fitz
-import numpy as np
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
+import imutils.contours
 
 IMG_FOLDER = 'tsp_zaznamove_archy'
 
@@ -11,15 +12,15 @@ IMG_FOLDER = 'tsp_zaznamove_archy'
 def load_pdf(file_path):
     """
     Load pdf file and return list of images
-    :param file_path:  path to pdf file
-    :return:  list of images
+    :param file_path: Path to pdf file
+    :return: List of images
     """
     pdf = fitz.open(file_path)
     images = []
-    for page_num in range(len(pdf)):  # iterate over all pages
+    for page_num in range(len(pdf)):  # Iterate over all pages
         page = pdf[page_num]
         image = page.get_pixmap(dpi=300)
-        image = np.frombuffer(image.samples, dtype=np.uint8).reshape(image.h, image.w, 3)  # convert to numpy array
+        image = np.frombuffer(image.samples, dtype=np.uint8).reshape(image.h, image.w, 3)  # Convert to numpy array
         images.append(image)
     return images
 
@@ -27,8 +28,8 @@ def load_pdf(file_path):
 def show_images(titles, images):
     """
     Display images in a row with titles
-    :param titles:  list of titles
-    :param images:  list of images
+    :param titles: List of titles
+    :param images: List of images
     """
     fig, axs = plt.subplots(1, len(images), figsize=(len(images) * 10, 10))
     fig.tight_layout()
@@ -44,9 +45,9 @@ def show_images(titles, images):
 def threshold_OTSU(image, threshold):
     """
     Apply OTSU thresholding to the image
-    :param image: grayscale image
-    :param threshold: threshold value
-    :return: thresholded image
+    :param image: Grayscale image
+    :param threshold: Threshold value
+    :return: Thresholded image
     """
     _, threshed = cv2.threshold(image, threshold, 255, cv2.THRESH_BINARY_INV + cv2.THRESH_OTSU)
     return threshed
@@ -55,9 +56,9 @@ def threshold_OTSU(image, threshold):
 def threshold_to_zero(image, threshold):
     """
     Apply thresholding to zero to the image
-    :param image: grayscale image
-    :param threshold: threshold value
-    :return: thresholded image
+    :param image: Grayscale image
+    :param threshold: Threshold value
+    :return: Thresholded image
     """
     _, threshed = cv2.threshold(image, threshold, 255, cv2.THRESH_TOZERO)
     return cv2.bitwise_not(threshed)
@@ -66,9 +67,9 @@ def threshold_to_zero(image, threshold):
 def threshold_yen(image, threshold):
     """
     Apply Yen thresholding to the image
-    :param image: grayscale image
-    :param threshold: threshold value (not used)
-    :return: thresholded image
+    :param image: Grayscale image
+    :param threshold: Threshold value (not used)
+    :return: Thresholded image
     """
     thresh = th.threshold_yen(image)
     threshed = putils.apply_threshold(image, thresh)
@@ -78,9 +79,9 @@ def threshold_yen(image, threshold):
 def threshold_mean(image, threshold):
     """
     Apply mean thresholding to the image
-    :param image: grayscale image
-    :param threshold: threshold value (not used)
-    :return: thresholded image
+    :param image: Grayscale image
+    :param threshold: Threshold value (not used)
+    :return: Thresholded image
     """
     thresh = th.threshold_mean(image)
     threshed = putils.apply_threshold(image, thresh)
@@ -90,32 +91,30 @@ def threshold_mean(image, threshold):
 def threshold_kapur(image, threshold):
     """
     Apply Kapur thresholding to the image
-    :param image: grayscale image
-    :param threshold: threshold value (not used)
-    :return: thresholded image
+    :param image: Grayscale image
+    :param threshold: Threshold value (not used)
+    :return: Thresholded image
     """
     th = putils.kapur_threshold(image)
     threshed = putils.apply_threshold(image, th)
     return cv2.bitwise_not(threshed)
 
 
-
 def find_contours(image):
     """
     Find contours in the image
-    :param image: thresholded image
-    :return: list of contours
+    :param image: Thresholded image
+    :return: List of contours
     """
     contours, _ = cv2.findContours(image, cv2.RETR_EXTERNAL, cv2.CHAIN_APPROX_SIMPLE)
     return contours
 
 
-
 def find_edges(image):
     """
     Find edges in the image
-    :param image: grayscale image
-    :return: edges
+    :param image: Grayscale image
+    :return: Edges
     """
     edges = cv2.Canny(image, 100, 200)
     return edges
@@ -134,7 +133,6 @@ threshed_filled = threshold_OTSU(gray_filled, 170)
 # show_images(['scanned_filled', 'threshed_filled'], [scanned_filled, threshed_filled])
 
 contours = find_contours(threshed_filled)
-print(len(contours))
 # pick k largest contours
 k = 4
 contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
@@ -155,35 +153,48 @@ for contour in contours:
 
 # show_images(['subimage1', 'subimage2', 'subimage3', 'subimage4'], subimages)
 
+answers = []
+
 how_many_circles = [100, 100, 100, 40]
 for i, subimage in enumerate(subimages):
+    answers.append([])
     # for each image, find circles
     gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
     threshed = threshold_OTSU(gray, 170)
     contours = find_contours(threshed)
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i] + 1]
+    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
+    contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
     circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
 
     threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
     threshed_subimage = threshold_mean(threshed_subimage, 170)
 
+    if i != len(subimages) - 1:
+        num_col = 5
+    else:
+        num_col = 4
 
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-        bubble = threshed_subimage[y:y+h, x:x+w]
-        pixels = np.mean(bubble)
-        print(f'pixels: {pixels}')
+    for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
+        subcontours = imutils.contours.sort_contours(contours[j:j + num_col])[0]
+        answers[i].append([])
 
+        for bubble in subcontours:
+            (x, y, w, h) = cv2.boundingRect(bubble)
+            cv2.rectangle(circle_image, (x, y), (x+w, y+h), (255, 0, 0), 2)
 
-    show_images([f'subimage{i+1}', f'circle_image{i+1}'], [subimage, circle_image])
+            bubble_subimage = threshed_subimage[y:y+h, x:x+w]
+            one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
 
+            pixels = cv2.countNonZero(one_channel)
+            num_pixels = w * h
 
+            # print(pixels, num_pixels)
 
+            if pixels > 0.75 * num_pixels:
+                answers[i][q].append(1)
+            else:
+                answers[i][q].append(0)
 
-#
-# gray_filled = cv2.GaussianBlur(gray_filled, (5, 5), 0)
-#
-# threshold = 170
-# threshold_opts = [threshold_OTSU, threshold_to_zero, threshold_yen, threshold_mean, threshold_kapur]
-# thresh_images = [threshold_fun(gray_filled, threshold) for threshold_fun in threshold_opts]
-# show_images([f'{threshold.__name__}' for threshold in threshold_opts], thresh_images)
+    show_images([f'subimage{i+1}', f'threshed_subimage{i+1}', f'circle_image{i+1}'], [subimage, threshed_subimage, circle_image])
+
+    print(answers[i])
