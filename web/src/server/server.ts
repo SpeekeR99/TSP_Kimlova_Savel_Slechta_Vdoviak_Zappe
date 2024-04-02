@@ -1,4 +1,4 @@
-import express, { Express, Request, Response } from 'express'
+import express, { Express, NextFunction, Request, Response } from 'express'
 import dotenv from 'dotenv'
 import routes from './routes'
 import { Route } from './interface'
@@ -17,12 +17,28 @@ app.use(express.json())
 
 if (process.env.NODE_ENV === 'production') {
 	app.use(express.static(DIST_DIR))
+
+	app.get('*', (req: Request, res: Response, next: NextFunction) => {
+		res.sendFile(path.join(DIST_DIR, 'index.html'))
+	})
 } else {
 	const compiler = webpack(webpackConfig)
 	const wdMiddleware = webpackDevMiddleware(compiler)
 
 	app.use(require('webpack-hot-middleware')(compiler))
 	app.use(wdMiddleware)
+
+	app.get('*', (req: Request, res: Response, next: NextFunction) => {
+		const filename = path.join(compiler.outputPath, 'index.html')
+		compiler.outputFileSystem.readFile(filename, (err, result) => {
+			if (err) {
+				return next(err)
+			}
+			res.set('content-type', 'text/html')
+			res.send(result)
+			res.end()
+		})
+	})
 }
 
 // Routes
