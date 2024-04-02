@@ -1,5 +1,7 @@
-import React, { Fragment, ReactNode } from 'react'
+import React, { Fragment, ReactNode, useState } from 'react'
 import { AppBar, Typography, Toolbar, Box } from '@mui/material'
+import Menu from './Menu/Menu'
+import { DrawerHeader, Main } from './Menu/styles'
 
 interface BaseLayoutProps {
 	children?: ReactNode
@@ -23,24 +25,19 @@ const Footer = () => (
 	</Fragment>
 )
 
-const Header = () => (
-	<Box sx={{ flexGrow: 1, height: '8vh' }}>
-		<AppBar component='nav'>
-			<Toolbar sx={{ height: '8vh' }}>
-				<Typography variant='h5' component='div' sx={{ flexGrow: 1 }}>
-					ADT exam tool
-				</Typography>
-			</Toolbar>
-		</AppBar>
-	</Box>
-)
+const BaseLayout = ({ children }: BaseLayoutProps) => {
+	const [open, setOpen] = useState<boolean>(false)
 
-const BaseLayout = ({ children }: BaseLayoutProps) => (
-	<>
-		{<Header />}
-		{children}
-		<Footer />
-	</>
-)
+	return (
+		<Box sx={{ display: 'flex' }}>
+			<Menu open={open} setOpen={setOpen} />
+			<Main open={open}>
+				<DrawerHeader />
+				{children}
+			</Main>
+			<Footer />
+		</Box>
+	)
+}
 
 export default BaseLayout
