@@ -1,4 +1,4 @@
-import React, { useCallback, useState } from 'react'
+import React, { useCallback, useEffect, useState } from 'react'
 import { Box, Button, Container, Typography } from '@mui/material'
 import {
 	useDropzone,
@@ -6,10 +6,17 @@ import {
 	DropzoneInputProps,
 } from 'react-dropzone'
 import { Stack } from '@mui/system'
-import { uploadFile } from '../actions/uploadActions'
+import { useGenerateActions } from '../actions/useGenerateActions'
+import { useBackDropContext } from './hooks/useBackDropContext'
 
 const MyDropzone = () => {
+	const { mutate, isLoading } = useGenerateActions()
 	const [file, setFile] = useState<File | null>(null)
+	const { setOpenBackDrop } = useBackDropContext()
+
+	useEffect(() => {
+		setOpenBackDrop(isLoading)
+	}, [isLoading])
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
 		if (acceptedFiles.length > 0) setFile(acceptedFiles[0])
@@ -79,7 +86,7 @@ const MyDropzone = () => {
 				<Button
 					variant='contained'
 					disabled={!file}
-					onClick={() => uploadFile(file)}
+					onClick={(e) => mutate(file)}
 				>
 					Upload file
 				</Button>
