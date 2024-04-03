@@ -15,9 +15,15 @@ const app: Express = express()
 
 app.use(express.json())
 
+const loadRoutes = () => {
+	app.use('/healthcheck', (req: Request, res: Response) => res.sendStatus(200))
+	routes.forEach(({ path, router }: Route) => app.use(path, router))
+}
+
 if (process.env.NODE_ENV === 'production') {
 	app.use(express.static(DIST_DIR))
 
+	loadRoutes()
 	app.get('*', (req: Request, res: Response, next: NextFunction) => {
 		res.sendFile(path.join(DIST_DIR, 'index.html'))
 	})
@@ -28,6 +34,7 @@ if (process.env.NODE_ENV === 'production') {
 	app.use(require('webpack-hot-middleware')(compiler))
 	app.use(wdMiddleware)
 
+	loadRoutes()
 	app.get('*', (req: Request, res: Response, next: NextFunction) => {
 		const filename = path.join(compiler.outputPath, 'index.html')
 		compiler.outputFileSystem.readFile(filename, (err, result) => {
@@ -41,9 +48,6 @@ if (process.env.NODE_ENV === 'production') {
 	})
 }
 
-// Routes
-app.use('/healthcheck', (req: Request, res: Response) => res.sendStatus(200))
-routes.forEach(({ path, router }: Route) => app.use(path, router))
 app.use(errorHandler)
 
 app.listen(port, () => {
