@@ -16,7 +16,7 @@ const NotFoundPage = () => (
 				severity='warning'
 				sx={{
 					borderRadius: '15px',
-					marginTop: '30%',
+					marginTop: '15%',
 					justifyContent: 'center',
 				}}
 			>
