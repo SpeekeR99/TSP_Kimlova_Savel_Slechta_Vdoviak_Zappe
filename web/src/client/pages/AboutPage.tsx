@@ -1,6 +1,6 @@
 import React from 'react'
 import BaseLayout from '../components/BaseLayout'
 
-const AboutPage = () => <BaseLayout>About page</BaseLayout>
+const About = () => <BaseLayout>About page</BaseLayout>
 
-export default AboutPage
+export default About
