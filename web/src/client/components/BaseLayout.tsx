@@ -2,6 +2,7 @@ import React, { Fragment, ReactNode, useState } from 'react'
 import { AppBar, Typography, Toolbar, Box } from '@mui/material'
 import Menu from './Menu/Menu'
 import { DrawerHeader, Main } from './Menu/styles'
+import AppSnackbar from './AppSnackbar'
 
 interface BaseLayoutProps {
 	children?: ReactNode
@@ -30,6 +31,7 @@ const BaseLayout = ({ children }: BaseLayoutProps) => {
 
 	return (
 		<Box sx={{ display: 'flex' }}>
+			<AppSnackbar />
 			<Menu open={open} setOpen={setOpen} />
 			<Main open={open}>
 				<DrawerHeader />
