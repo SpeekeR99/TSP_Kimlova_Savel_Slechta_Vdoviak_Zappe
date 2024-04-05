@@ -29,7 +29,7 @@
     },
     "label_offset": {
       "main": 0.05,
-      "rows": 0.05,
+      "rows": 0.04,
       "cols": 0.05
     },
     "label_font_size": {
@@ -38,7 +38,7 @@
       "cols": 12
     }
   },
-  "number_of_questions": 60,
+  "number_of_questions": 50,
   "answer_rect": {
     "width": 0.15,
     "height": 0.8,
@@ -53,8 +53,8 @@
     },
     "label_offset": {
       "main": 0.05,
-      "rows": 0.05,
-      "cols": 0.05
+      "rows": 0.04,
+      "cols": 0.03
     },
     "label_font_size": {
       "main": 20,

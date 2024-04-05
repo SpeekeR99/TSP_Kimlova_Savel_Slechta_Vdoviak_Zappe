@@ -7,10 +7,10 @@ import matplotlib.patches as patches
 CONFIG_FILE = "config.json"
 
 # Question number (global across all rectangles and sheets)
-question_number = 0
+question_number = 1
 
 
-def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False):
+def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False, last_rect_q=None):
     """
     Draws a rectangle including circles to be filled in the final bubble sheet
     :param ax: The axis to draw the rectangle on
@@ -19,6 +19,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     :param rect_y: The y-coordinate of the rectangle top left corner
     :param rect_type: Type of the rectangle (Student ID or Answers)
     :param gray_columns: If true every other column will be grayed out, otherwise every other row
+    :param last_rect_q: Number of questions in the last rectangle
     """
     # Set colors from the config
     rect_color = config["colors"]["main_color"]
@@ -50,8 +51,12 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     # Set up the question label and answer label correctly
     if rect_type == "answer_rect":
         global question_number
-        q_label = [str(grid_y - i + question_number) for i in range(grid_y)]
-        question_number += grid_y
+        if last_rect_q is not None:
+            q_label = [str(i + question_number) for i in range(last_rect_q)]
+            question_number += last_rect_q
+        else:
+            q_label = [str(i + question_number) for i in range(grid_y)]
+            question_number += grid_y
 
         if a_label == "alphabetic":
             a_label = [chr(65 + i) for i in range(grid_x)]
@@ -59,7 +64,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
             a_label = [str(i + 1) for i in range(grid_x)]
 
     if rect_type == "student_id_rect":
-        q_label = [str(grid_y - i) for i in range(grid_y)]
+        q_label = [str(i) for i in range(grid_y)]
 
     # Rounded corners rectangle
     round_rect = patches.FancyBboxPatch((rect_x, rect_y), width, height, edgecolor=rect_color, facecolor="none",
@@ -90,6 +95,8 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     # Draw the bubbles
     for i in range(grid_x):
         for j in range(grid_y):
+            if last_rect_q is not None and j < last_rect_q:
+                continue
             # Calculate the position of the bubble
             x = rect_x + grid_width * i
             y = rect_y + grid_height * j
@@ -110,7 +117,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
 
     # Draw the labels of questions (rows)
     for i, label in enumerate(q_label):
-        ax.text(rect_x - q_offset, rect_y + grid_height * i + grid_height / 2, label,
+        ax.text(rect_x - q_offset, rect_y + height - (grid_height * i + grid_height / 2), label,
                 ha='center', va='center', fontsize=q_label_fontsize, color=text_color)
 
 
@@ -134,13 +141,17 @@ def main(config):
     offset_between_rect = config["rect_settings"]["rect_space_between"]
     num_of_q = config["number_of_questions"]
     num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
-    num_of_rect = np.ceil(num_of_q / num_of_q_per_rect)
+    num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
+    last_rect_q = num_of_q % num_of_q_per_rect
 
     # Define the answer fields
     x += config["student_id_rect"]["width"] + 2 * offset_between_rect
 
-    for i in range(int(num_of_rect)):
-        draw_rect(ax, config, x, y)
+    for i in range(num_of_rect):
+        if i == num_of_rect - 1 and last_rect_q != 0:
+            draw_rect(ax, config, x, y, last_rect_q=last_rect_q)
+        else:
+            draw_rect(ax, config, x, y)
         x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
     # Turn off the axis but keep the frame
