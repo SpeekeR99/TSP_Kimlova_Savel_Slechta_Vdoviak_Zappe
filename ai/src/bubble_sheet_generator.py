@@ -128,7 +128,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
                 ha='center', va='center', fontsize=q_label_fontsize, color=text_color)
 
 
-def main(config):
+def generate_bubble_sheet(config, student_id):
     """
     Main function to generate the bubble sheet
     """
@@ -171,7 +171,7 @@ def main(config):
     ax.axis('off')
     # Save the figure as a PDF file
     plt.savefig('output.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
-
+    file_name = 'output/' + str(student_id) + '.pdf'
 
 if __name__ == "__main__":
     try:
