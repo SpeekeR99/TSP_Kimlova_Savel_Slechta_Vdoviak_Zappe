@@ -1,126 +1,120 @@
+import numpy as np
+import json
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 
+# Config filepath
+CONFIG_FILE = "config.json"
 
-class BubbleSheet:
+# Question number (global across all rectangles and sheets)
+question_number = 0
+
+
+def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False):
     """
-    Bubble sheet class to generate
+    Draws a rectangle including circles to be filled in the final bubble sheet
+    :param ax: The axis to draw the rectangle on
+    :param config: Configuration dictionary
+    :param rect_x: The x-coordinate of the rectangle top left corner
+    :param rect_y: The y-coordinate of the rectangle top left corner
+    :param rect_type: Type of the rectangle (Student ID or Answers)
+    :param gray_columns: If true every other column will be grayed out, otherwise every other row
     """
-    def __init__(self):
-        # Constants
-        self.MAIN_COLOR = "black"
-        self.OFF_COLOR = "lightgray"
-        self.TEXT_COLOR = "gray"
-        self.RECT_WIDTH = 2
+    # Set colors from the config
+    rect_color = config["colors"]["main_color"]
+    off_color = config["colors"]["off_color"]
+    text_color = config["colors"]["text_color"]
 
-    def draw_rect(self, ax, rect_x, rect_y, width, height, grid_x, grid_y, rect_color=None,
-                  rect_width=2, big_label=None, label_offset=0.1, label_fontsize=20, gray_columns=False):
-        """
-        Draws a rectangle including circles to be filled in the final bubble sheet
-        :param ax: The axis to draw the rectangle on
-        :param rect_x: The x-coordinate of the rectangle top left corner
-        :param rect_y: The y-coordinate of the rectangle top left corner
-        :param width: Width of the rectangle
-        :param height: Height of the rectangle
-        :param grid_x: Number of columns
-        :param grid_y: Number of rows
-        :param rect_color: Main color of the rectangle
-        :param rect_width: Width of the rectangle border
-        :param big_label: Label of the rectangle (above)
-        :param label_offset: Offset of the big label
-        :param label_fontsize: Font size of the big label
-        :param gray_columns: If true every other column will be grayed out, otherwise every other row
-        """
-        # Set default colors if not provided
-        if rect_color is None:
-            rect_color = self.MAIN_COLOR
+    # Set the width of line of the rectangle
+    rect_width = config["rect_settings"]["rect_line_width"]
 
-        # Rounded corners rectangle
-        round_rect = patches.FancyBboxPatch((rect_x, rect_y), width, height, edgecolor=rect_color, facecolor="none",
-                                            linewidth=rect_width, boxstyle="round,pad=0.01")
-        ax.add_patch(round_rect)
+    # Set the width and height of the rectangle and the grid inside
+    width = config[rect_type]["width"]
+    height = config[rect_type]["height"]
+    grid_x = config[rect_type]["grid"]["cols"]
+    grid_y = config[rect_type]["grid"]["rows"]
 
-        # Width and Height of grid cell
-        grid_width = width / grid_x
-        grid_height = height / grid_y
+    # Set the labels and offsets and font sizes from the config
+    label = config[rect_type]["label"]["main"]
+    q_label = config[rect_type]["label"]["rows"]
+    a_label = config[rect_type]["label"]["cols"]
 
-        # Gray out every other column
-        if gray_columns:
-            for i in range(grid_x):
-                x = rect_x + grid_width * i
-                if i % 2 == 0:
-                    rect = patches.Rectangle((x, rect_y), grid_width, height, edgecolor=self.OFF_COLOR,
-                                             facecolor=self.OFF_COLOR, linewidth=rect_width)
-                    ax.add_patch(rect)
-        # Gray out every other row
-        else:
-            for i in range(grid_y):
-                y = rect_y + grid_height * i
-                if i % 2 == 0:
-                    rect = patches.Rectangle((rect_x, y), width, grid_height, edgecolor=self.OFF_COLOR,
-                                             facecolor=self.OFF_COLOR, linewidth=rect_width)
-                    ax.add_patch(rect)
+    label_offset = config[rect_type]["label_offset"]["main"]
+    q_offset = config[rect_type]["label_offset"]["rows"]
+    a_offset = config[rect_type]["label_offset"]["cols"]
 
-        # Draw the big label
-        if big_label:
-            ax.text(rect_x + width / 2, rect_y + height + label_offset, big_label,
-                    ha='center', va='center', fontsize=label_fontsize)
+    label_font_size = config[rect_type]["label_font_size"]["main"]
+    q_label_fontsize = config[rect_type]["label_font_size"]["rows"]
+    a_label_fontsize = config[rect_type]["label_font_size"]["cols"]
 
-    def draw_grid(self, ax, rect_x, rect_y, width, height, grid_x, grid_y, q_label, a_label,
-                  rect_color=None, label_color=None, q_offset=0.05, a_offset=0.05,
-                  rect_width=2, q_label_fontsize=12, a_label_fontsize=12):
-        """
-        Draws a rectangle including circles to be filled in the final bubble sheet
-        :param ax: The axis to draw the rectangle on
-        :param rect_x: The x-coordinate of the rectangle top left corner
-        :param rect_y: The y-coordinate of the rectangle top left corner
-        :param width: Width of the rectangle
-        :param height: Height of the rectangle
-        :param grid_x: Number of columns
-        :param grid_y: Number of rows
-        :param q_label: List of labels for questions (rows)
-        :param a_label: List of labels for answers (columns)
-        :param rect_color: Main color of the rectangle
-        :param label_color: Label color
-        :param q_offset: Question label offset
-        :param a_offset: Answer label offset
-        :param rect_width: Width of the rectangle border
-        :param q_label_fontsize: Font size of question labels
-        :param a_label_fontsize: Font size of answer labels
-        """
-        # Set default colors if not provided
-        if rect_color is None:
-            rect_color = self.MAIN_COLOR
-        if label_color is None:
-            label_color = self.TEXT_COLOR
+    # Set up the question label and answer label correctly
+    if rect_type == "answer_rect":
+        global question_number
+        q_label = [str(grid_y - i + question_number) for i in range(grid_y)]
+        question_number += grid_y
 
-        # Width and Height of grid cell
-        grid_width = width / grid_x
-        grid_height = height / grid_y
+        if a_label == "alphabetic":
+            a_label = [chr(65 + i) for i in range(grid_x)]
+        elif a_label == "numeric":
+            a_label = [str(i + 1) for i in range(grid_x)]
 
-        # Draw the bubbles
+    if rect_type == "student_id_rect":
+        q_label = [str(grid_y - i) for i in range(grid_y)]
+
+    # Rounded corners rectangle
+    round_rect = patches.FancyBboxPatch((rect_x, rect_y), width, height, edgecolor=rect_color, facecolor="none",
+                                        linewidth=rect_width, boxstyle="round,pad=0.01")
+    ax.add_patch(round_rect)
+
+    # Width and Height of grid cell
+    grid_width = width / grid_x
+    grid_height = height / grid_y
+
+    # Gray out every other column
+    if gray_columns:
         for i in range(grid_x):
-            for j in range(grid_y):
-                # Calculate the position of the bubble
-                x = rect_x + grid_width * i
-                y = rect_y + grid_height * j
-                # Draw the bubble
-                circle = patches.Circle((x + grid_width / 2, y + grid_height / 2), grid_width / 3,
-                                        edgecolor=rect_color, facecolor="none", linewidth=rect_width)
-                ax.add_patch(circle)
+            x = rect_x + grid_width * i
+            if i % 2 == 0:
+                rect = patches.Rectangle((x, rect_y), grid_width, height, edgecolor=off_color,
+                                         facecolor=off_color, linewidth=rect_width)
+                ax.add_patch(rect)
+    # Gray out every other row
+    else:
+        for i in range(grid_y):
+            y = rect_y + grid_height * i
+            if i % 2 == 0:
+                rect = patches.Rectangle((rect_x, y), width, grid_height, edgecolor=off_color,
+                                         facecolor=off_color, linewidth=rect_width)
+                ax.add_patch(rect)
 
-        # Draw the labels of answers (columns)
-        for i, label in enumerate(a_label):
-            ax.text(rect_x + grid_width * i + grid_width / 2, rect_y + height + a_offset, label,
-                    ha='center', va='center', fontsize=a_label_fontsize, color=label_color)
+    # Draw the bubbles
+    for i in range(grid_x):
+        for j in range(grid_y):
+            # Calculate the position of the bubble
+            x = rect_x + grid_width * i
+            y = rect_y + grid_height * j
+            # Draw the bubble
+            circle = patches.Circle((x + grid_width / 2, y + grid_height / 2), grid_width / 3,
+                                    edgecolor=rect_color, facecolor="none", linewidth=rect_width)
+            ax.add_patch(circle)
 
-        # Draw the labels of questions (rows)
-        for i, label in enumerate(q_label):
-            ax.text(rect_x - q_offset, rect_y + grid_height * i + grid_height / 2, label,
-                    ha='center', va='center', fontsize=q_label_fontsize, color=label_color)
+    # Draw the big label
+    if label != "":
+        ax.text(rect_x + width / 2, rect_y + height + label_offset, label,
+                ha='center', va='center', fontsize=label_font_size)
+
+    # Draw the labels of answers (columns)
+    for i, label in enumerate(a_label):
+        ax.text(rect_x + grid_width * i + grid_width / 2, rect_y + height + a_offset, label,
+                ha='center', va='center', fontsize=a_label_fontsize, color=text_color)
+
+    # Draw the labels of questions (rows)
+    for i, label in enumerate(q_label):
+        ax.text(rect_x - q_offset, rect_y + grid_height * i + grid_height / 2, label,
+                ha='center', va='center', fontsize=q_label_fontsize, color=text_color)
 
 
-def main():
+def main(config):
     """
     Main function to generate the bubble sheet
     """
@@ -131,53 +125,23 @@ def main():
     # Set the aspect of the plot to be equal
     ax.set_aspect('equal', adjustable='datalim')
 
-    # Instantiate the BubbleSheet class
-    bubble_sheet = BubbleSheet()
-
     # Define the Student ID field
-    # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
-    x = -0.1
-    y = 0.05
-    width = 0.2
-    height = 0.6
-    grid_x = 4
-    grid_y = 10
-    q_label = [str(9 - i) for i in range(10)]
-    a_label = []
-
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y, big_label="Student ID",
-                           label_offset=0.05, gray_columns=True)
-    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.03)
+    x = config["student_id_rect"]["x"]
+    y = config["student_id_rect"]["y"]
+    draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True)
 
     # Offset between rectangles
-    offset_between_rect = 0.1
+    offset_between_rect = config["rect_settings"]["rect_space_between"]
+    num_of_q = config["number_of_questions"]
+    num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
+    num_of_rect = np.ceil(num_of_q / num_of_q_per_rect)
 
-    # Define the first answer field
-    # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
-    x = x + width + offset_between_rect * 2
-    width = 0.15
-    height = 0.8
-    grid_x = 5
-    grid_y = 20
-    q_label = [str(20 - i) for i in range(20)]
-    a_label = ["A", "B", "C", "D", "E"]
+    # Define the answer fields
+    x += config["student_id_rect"]["width"] + 2 * offset_between_rect
 
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y)
-    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.04, a_offset=0.03)
-
-    # Define the second answer field
-    # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
-    x = x + width + offset_between_rect * 1.5
-
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y, big_label="Answers")
-    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.04, a_offset=0.03)
-
-    # Define the third answer field
-    # THESE MAGIC NUMBERS SERVE AS EXAMPLES OF HOW THE USER MIGHT INPUT THIS FIELD
-    x = x + width + offset_between_rect * 1.5
-
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y)
-    bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.04, a_offset=0.03)
+    for i in range(int(num_of_rect)):
+        draw_rect(ax, config, x, y)
+        x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
     # Turn off the axis but keep the frame
     ax.axis('off')
@@ -186,5 +150,6 @@ def main():
 
 
 if __name__ == "__main__":
-    # TODO: Take user input and make the bubble sheet customizable on user's demand
-    main()
+    with open(CONFIG_FILE, "r", encoding="utf-8") as fp:
+        config = json.load(fp)
+    main(config)

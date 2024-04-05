@@ -1,0 +1,65 @@
+{
+  "colors": {
+    "main_color": "black",
+    "off_color": "lightgray",
+    "text_color": "gray"
+  },
+  "header": {
+    "title": "Multiple Choice Answer Sheet",
+    "date": "Date: ",
+    "signature": "Signature: "
+  },
+  "rect_settings": {
+    "rect_line_width": 2,
+    "rect_space_between": 0.1
+  },
+  "student_id_rect": {
+    "x": -0.1,
+    "y": 0.05,
+    "width": 0.2,
+    "height": 0.6,
+    "grid": {
+      "rows": 10,
+      "cols": 4
+    },
+    "label": {
+      "main": "Student ID",
+      "rows": "",
+      "cols": ""
+    },
+    "label_offset": {
+      "main": 0.05,
+      "rows": 0.05,
+      "cols": 0.05
+    },
+    "label_font_size": {
+      "main": 20,
+      "rows": 12,
+      "cols": 12
+    }
+  },
+  "number_of_questions": 60,
+  "answer_rect": {
+    "width": 0.15,
+    "height": 0.8,
+    "grid": {
+      "rows": 20,
+      "cols": 5
+    },
+    "label": {
+      "main": "",
+      "rows": "",
+      "cols": "alphabetic"
+    },
+    "label_offset": {
+      "main": 0.05,
+      "rows": 0.05,
+      "cols": 0.05
+    },
+    "label_font_size": {
+      "main": 20,
+      "rows": 12,
+      "cols": 12
+    }
+  }
+}
