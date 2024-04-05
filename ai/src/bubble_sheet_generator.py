@@ -120,7 +120,7 @@ class BubbleSheet:
                     ha='center', va='center', fontsize=q_label_fontsize, color=label_color)
 
 
-def main():
+def generate_bubble_sheet(test_length, student_id):
     """
     Main function to generate the bubble sheet
     """
@@ -145,7 +145,7 @@ def main():
     q_label = [str(9 - i) for i in range(10)]
     a_label = []
 
-    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y, big_label="Student ID",
+    bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y, big_label=student_id,
                            label_offset=0.05, gray_columns=True)
     bubble_sheet.draw_grid(ax, x, y, width, height, grid_x, grid_y, q_label, a_label, q_offset=0.03)
 
@@ -158,8 +158,8 @@ def main():
     width = 0.15
     height = 0.8
     grid_x = 5
-    grid_y = 20
-    q_label = [str(20 - i) for i in range(20)]
+    grid_y = test_length
+    q_label = [str(test_length - i) for i in range(test_length)]
     a_label = ["A", "B", "C", "D", "E"]
 
     bubble_sheet.draw_rect(ax, x, y, width, height, grid_x, grid_y)
@@ -182,9 +182,5 @@ def main():
     # Turn off the axis but keep the frame
     ax.axis('off')
     # Save the figure as a PDF file
-    plt.savefig('output.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
-
-
-if __name__ == "__main__":
-    # TODO: Take user input and make the bubble sheet customizable on user's demand
-    main()
+    file_name = 'output/' + str(student_id) + '.pdf'
+    plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
