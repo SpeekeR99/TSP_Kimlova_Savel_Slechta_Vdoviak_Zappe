@@ -1,0 +1,6 @@
+---
+
+- name: Initial Server Configuration
+  hosts: webservers
+  roles:
+    - users

@@ -1,0 +1,14 @@
+galaxy_info:
+  role_name: users
+  author: Jakub Slechta
+  description: Role for user and user group management.
+  company: KIV ZCU
+
+  license: MIT
+
+  min_ansible_version: "2.1"
+  
+  galaxy_tags: []
+
+
+dependencies: []
