@@ -50,19 +50,24 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
 
     # Set up the question label and answer label correctly
     if rect_type == "answer_rect":
-        global question_number
+        global question_number  # Global question number counter
+
+        # If this is the last rectangle, that could have less questions
         if last_rect_q is not None:
             q_label = [str(i + question_number) for i in range(last_rect_q)]
             question_number += last_rect_q
+        # Else normal rectangle
         else:
             q_label = [str(i + question_number) for i in range(grid_y)]
             question_number += grid_y
 
+        # If the answer labels are alphabetic use ABCD... else if numeric use 1234...
         if a_label == "alphabetic":
             a_label = [chr(65 + i) for i in range(grid_x)]
         elif a_label == "numeric":
             a_label = [str(i + 1) for i in range(grid_x)]
 
+    # Set up the student ID label correctly
     if rect_type == "student_id_rect":
         q_label = [str(i) for i in range(grid_y)]
 
@@ -95,8 +100,10 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     # Draw the bubbles
     for i in range(grid_x):
         for j in range(grid_y):
+            # Skip the bubbles if this is the last rectangle and the question number is less than the last_rect_q
             if last_rect_q is not None and j < last_rect_q:
                 continue
+
             # Calculate the position of the bubble
             x = rect_x + grid_width * i
             y = rect_y + grid_height * j
@@ -105,7 +112,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
                                     edgecolor=rect_color, facecolor="none", linewidth=rect_width)
             ax.add_patch(circle)
 
-    # Draw the big label
+    # Draw the big label (if it is set in the config)
     if label != "":
         ax.text(rect_x + width / 2, rect_y + height + label_offset, label,
                 ha='center', va='center', fontsize=label_font_size)
@@ -139,19 +146,25 @@ def main(config):
 
     # Offset between rectangles
     offset_between_rect = config["rect_settings"]["rect_space_between"]
+
+    # Number of questions
     num_of_q = config["number_of_questions"]
     num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
     num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
     last_rect_q = num_of_q % num_of_q_per_rect
 
-    # Define the answer fields
+    # Define answers fields
     x += config["student_id_rect"]["width"] + 2 * offset_between_rect
 
     for i in range(num_of_rect):
+        # Last rectangle has less questions (maybe)
         if i == num_of_rect - 1 and last_rect_q != 0:
             draw_rect(ax, config, x, y, last_rect_q=last_rect_q)
+        # Normal rectangle
         else:
             draw_rect(ax, config, x, y)
+
+        # Move to the next rectangle
         x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
     # Turn off the axis but keep the frame
@@ -161,6 +174,17 @@ def main(config):
 
 
 if __name__ == "__main__":
-    with open(CONFIG_FILE, "r", encoding="utf-8") as fp:
-        config = json.load(fp)
+    try:
+        with open(CONFIG_FILE, "r", encoding="utf-8") as fp:
+            config = json.load(fp)
+    except FileNotFoundError:
+        print("ERROR: Config file not found! Please create a config file.")
+        exit(1)
+    except json.JSONDecodeError:
+        print("ERROR: Config file is not a valid JSON file!")
+        exit(1)
+    except Exception as e:
+        print(f"ERROR: {e}")
+        exit(1)
+
     main(config)
