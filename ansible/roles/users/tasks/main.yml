@@ -1,0 +1,6 @@
+---
+# tasks file for users
+
+- name: Test task
+  debug:
+    msg: "Hello, world!"
