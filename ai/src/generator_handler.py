@@ -2,6 +2,7 @@ import random
 
 from ai.src.bubble_sheet_generator import generate_bubble_sheet
 from ai.src.question_paper_generator import generate_question_paper
+from ai.src.utils import load_config
 
 
 class Student:
@@ -38,14 +39,17 @@ def shuffled_questions(questions_list, test_length):
 
 
 def generate_sheets(json_data):
+    # Load the configuration file
+    config = load_config()
+
     students, questions = preprocess_data(json_data)
 
     # number of questions in each test
-    test_length = 5
+    test_length = config["number_of_questions"]
     for student in students:
 
         # generate bubble sheet with unique id for every student
-        generate_bubble_sheet(test_length, student.id)
+        generate_bubble_sheet(student.id)
 
         # generate question paper with unique set of questions
         student_questions = shuffled_questions(questions, test_length)
