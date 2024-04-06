@@ -173,6 +173,7 @@ def generate_bubble_sheet(config, student_id):
     plt.savefig('output.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
     file_name = 'output/' + str(student_id) + '.pdf'
 
+
 if __name__ == "__main__":
     try:
         with open(CONFIG_FILE, "r", encoding="utf-8") as fp:
@@ -187,4 +188,4 @@ if __name__ == "__main__":
         print(f"ERROR: {e}")
         exit(1)
 
-    main(config)
+    generate_bubble_sheet(config, 0)
