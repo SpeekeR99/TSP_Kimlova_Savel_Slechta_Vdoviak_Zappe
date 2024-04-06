@@ -1,10 +1,7 @@
 import numpy as np
-import json
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
-
-# Config filepath
-CONFIG_FILE = "config.json"
+from ai.src.utils import load_config
 
 # Question number (global across all rectangles and sheets)
 question_number = 1
@@ -128,10 +125,13 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
                 ha='center', va='center', fontsize=q_label_fontsize, color=text_color)
 
 
-def main(config):
+def generate_bubble_sheet(student_id):
     """
     Main function to generate the bubble sheet
     """
+    # Load the configuration file
+    config = load_config()
+
     # Create a new figure with size of A4 paper
     cm = 1 / 2.54  # Centimeters in inches
     fig, ax = plt.subplots(figsize=(29.7 * cm, 21.0 * cm), dpi=300)
@@ -170,21 +170,5 @@ def main(config):
     # Turn off the axis but keep the frame
     ax.axis('off')
     # Save the figure as a PDF file
-    plt.savefig('output.pdf', format='pdf', bbox_inches='tight', pad_inches=0)
-
-
-if __name__ == "__main__":
-    try:
-        with open(CONFIG_FILE, "r", encoding="utf-8") as fp:
-            config = json.load(fp)
-    except FileNotFoundError:
-        print("ERROR: Config file not found! Please create a config file.")
-        exit(1)
-    except json.JSONDecodeError:
-        print("ERROR: Config file is not a valid JSON file!")
-        exit(1)
-    except Exception as e:
-        print(f"ERROR: {e}")
-        exit(1)
-
-    main(config)
+    file_name = '../generated_pdfs/' + str(student_id) + '_bubble_sheet.pdf'
+    plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
