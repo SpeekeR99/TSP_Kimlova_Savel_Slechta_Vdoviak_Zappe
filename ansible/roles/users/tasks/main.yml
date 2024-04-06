@@ -1,6 +1,16 @@
 ---
 # tasks file for users
-
-- name: Test task
-  debug:
-    msg: "Hello, world!"
+- name: Add user group
+  become: true
+  ansible.builtin.group:
+    name: "{{ user_group }}"
+    state: "{{ user_state }}"
+    
+- name: Add user
+  become: true
+  ansible.builtin.user:
+    name: "{{ user_name }}"
+    groups: "{{ user_group }}"
+    create_home: "{{ user_create_home }}"
+    shell: "{{ user_shell }}"
+    state: "{{ user_state }}"

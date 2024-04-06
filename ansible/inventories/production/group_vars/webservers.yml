@@ -1,0 +1,7 @@
+---
+# Override roles variables here
+user_name: nodejsapp
+user_group: nodejsapp
+
+nodejsapp_user: "{{ user_name }}"
+nodejsapp_group: "{{ user_group }}"
