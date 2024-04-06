@@ -7,7 +7,7 @@ from ai.src.utils import load_config
 question_number = 1
 
 
-def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False, last_rect_q=None):
+def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False, last_rect_q=None, student_id=0):
     """
     Draws a rectangle including circles to be filled in the final bubble sheet
     :param ax: The axis to draw the rectangle on
@@ -17,6 +17,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     :param rect_type: Type of the rectangle (Student ID or Answers)
     :param gray_columns: If true every other column will be grayed out, otherwise every other row
     :param last_rect_q: Number of questions in the last rectangle
+    :param student_id: Student ID
     """
     # Set colors from the config
     rect_color = config["colors"]["main_color"]
@@ -29,8 +30,8 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     # Set the width and height of the rectangle and the grid inside
     width = config[rect_type]["width"]
     height = config[rect_type]["height"]
-    grid_x = config[rect_type]["grid"]["cols"]
-    grid_y = config[rect_type]["grid"]["rows"]
+    cols = config[rect_type]["grid"]["cols"]
+    rows = config[rect_type]["grid"]["rows"]
 
     # Set the labels and offsets and font sizes from the config
     label = config[rect_type]["label"]["main"]
@@ -55,18 +56,18 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
             question_number += last_rect_q
         # Else normal rectangle
         else:
-            q_label = [str(i + question_number) for i in range(grid_y)]
-            question_number += grid_y
+            q_label = [str(i + question_number) for i in range(rows)]
+            question_number += rows
 
         # If the answer labels are alphabetic use ABCD... else if numeric use 1234...
         if a_label == "alphabetic":
-            a_label = [chr(65 + i) for i in range(grid_x)]
+            a_label = [chr(65 + i) for i in range(cols)]
         elif a_label == "numeric":
-            a_label = [str(i + 1) for i in range(grid_x)]
+            a_label = [str(i + 1) for i in range(cols)]
 
     # Set up the student ID label correctly
     if rect_type == "student_id_rect":
-        q_label = [str(i) for i in range(grid_y)]
+        q_label = [str(i) for i in range(rows)]
 
     # Rounded corners rectangle
     round_rect = patches.FancyBboxPatch((rect_x, rect_y), width, height, edgecolor=rect_color, facecolor="none",
@@ -74,12 +75,12 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     ax.add_patch(round_rect)
 
     # Width and Height of grid cell
-    grid_width = width / grid_x
-    grid_height = height / grid_y
+    grid_width = width / cols
+    grid_height = height / rows
 
     # Gray out every other column
     if gray_columns:
-        for i in range(grid_x):
+        for i in range(cols):
             x = rect_x + grid_width * i
             if i % 2 == 0:
                 rect = patches.Rectangle((x, rect_y), grid_width, height, edgecolor=off_color,
@@ -87,16 +88,20 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
                 ax.add_patch(rect)
     # Gray out every other row
     else:
-        for i in range(grid_y):
+        for i in range(rows):
             y = rect_y + grid_height * i
             if i % 2 == 0:
                 rect = patches.Rectangle((rect_x, y), width, grid_height, edgecolor=off_color,
                                          facecolor=off_color, linewidth=rect_width)
                 ax.add_patch(rect)
 
+    if rect_type == "student_id_rect":
+        # Pad the student ID with zeros from the left to make it 4 digits
+        student_id = str(student_id).zfill(4)
+
     # Draw the bubbles
-    for i in range(grid_x):
-        for j in range(grid_y):
+    for i in range(cols):
+        for j in range(rows):
             # Skip the bubbles if this is the last rectangle and the question number is less than the last_rect_q
             if last_rect_q is not None and j < last_rect_q:
                 continue
@@ -104,9 +109,17 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
             # Calculate the position of the bubble
             x = rect_x + grid_width * i
             y = rect_y + grid_height * j
+
+            # If this is the student ID rectangle, fill the bubbles according to the student ID
+            face_color = "none"
+            if rect_type == "student_id_rect":
+                y = rect_y + height - (grid_height * (j + 1))
+                if student_id[i] == str(j):
+                    face_color = rect_color
+
             # Draw the bubble
             circle = patches.Circle((x + grid_width / 2, y + grid_height / 2), grid_width / 3,
-                                    edgecolor=rect_color, facecolor="none", linewidth=rect_width)
+                                    edgecolor=rect_color, facecolor=face_color, linewidth=rect_width)
             ax.add_patch(circle)
 
     # Draw the big label (if it is set in the config)
@@ -142,7 +155,7 @@ def generate_bubble_sheet(student_id):
     # Define the Student ID field
     x = config["student_id_rect"]["x"]
     y = config["student_id_rect"]["y"]
-    draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True)
+    draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
 
     # Offset between rectangles
     offset_between_rect = config["rect_settings"]["rect_space_between"]
