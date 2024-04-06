@@ -170,5 +170,5 @@ def generate_bubble_sheet(student_id):
     # Turn off the axis but keep the frame
     ax.axis('off')
     # Save the figure as a PDF file
-    file_name = 'output/' + str(student_id) + '.pdf'
+    file_name = '../generated_pdfs/' + str(student_id) + '_bubble_sheet.pdf'
     plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
