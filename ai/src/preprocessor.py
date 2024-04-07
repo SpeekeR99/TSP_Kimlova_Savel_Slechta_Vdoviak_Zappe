@@ -1,3 +1,5 @@
+import json
+
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
@@ -116,10 +118,11 @@ def find_edges(image):
     return edges
 
 
-def preprocess_image(path_to_image):
+def preprocess_image(path_to_image, path_to_output):
     """
     Preprocess the image and detect filled bubbles
     :param path_to_image: Path to the image
+    :param path_to_output: Path to the output json file
     :return: List of detected answers
     """
 
@@ -231,12 +234,9 @@ def preprocess_image(path_to_image):
         # Show the images (just for showcase purposes)
         show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
                     [subimage, threshed_subimage, circle_image])
-        # Print the answers (just for showcase purposes)
-        print(answers[i])
 
+    output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
+              "answers": [item for sublist in answers[1:] for item in sublist]}
 
-# IMG_FOLDER = "../generated_pdfs"
-IMG_FOLDER = "../tsp_zaznamove_archy"
-# INPUT_FILE = "1234_bubble_sheet.pdf"
-INPUT_FILE = "naskenovany_vyplneny.pdf"
-preprocess_image(f"{IMG_FOLDER}/{INPUT_FILE}")
+    with open(path_to_output, "w", encoding="utf-8") as fp:
+        json.dump(output, fp, indent=4, ensure_ascii=False)
