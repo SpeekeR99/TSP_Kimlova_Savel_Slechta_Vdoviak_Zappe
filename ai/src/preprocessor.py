@@ -121,6 +121,10 @@ def preprocess_image(path_to_image):
     # Load the configuration file
     config = load_config()
 
+    num_questions = config["number_of_questions"]
+    num_rows = config["answer_rect"]["grid"]["rows"]
+    num_cols = config["answer_rect"]["grid"]["cols"]
+
     scanned_filled = load_pdf(path_to_image)[0]
     gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
     threshed_filled = threshold_otsu(gray_filled, 170)
@@ -128,8 +132,9 @@ def preprocess_image(path_to_image):
     # Find the big boxes around the answer bubbles
     contours = find_contours(threshed_filled)
     # Pick k largest contours
-    k = np.ceil(config["number_of_questions"]/config["answer_rect"]["grid"]["rows"]).astype(int) + 1
+    k = np.ceil(num_questions/num_rows).astype(int) + 1
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
+    contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
 
     # Create subimages from the big boxes
     subimages = []
@@ -150,18 +155,13 @@ def preprocess_image(path_to_image):
     answers = []
 
     # Number of circles in each subimage
-    # TODO: this will probably be redone with a configure file in the future (connect to generator)
-    num_questions = config["number_of_questions"]
-    num_rows = config["answer_rect"]["grid"]["rows"]
-    num_cols = config["answer_rect"]["grid"]["cols"]
-
-    max_grid = num_rows * num_cols
-    answer_grid = [max_grid] * (k-2)
-    answer_grid.append(np.ceil(config["number_of_questions"] % config["answer_rect"]["grid"]["rows"]).astype(int) * config["answer_rect"]["grid"]["cols"])
     student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"]["cols"]
-    answer_grid.append(student_id_grid)
-    print(answer_grid)
-    how_many_circles = [100, 100, 100, 40]
+    answer_grid = [student_id_grid]
+    max_grid = num_rows * num_cols
+    answer_grid += [max_grid] * (k - 2)
+    answer_grid.append((num_questions - (k - 2) * num_rows) * num_cols)
+    how_many_circles = answer_grid
+    print(how_many_circles)
 
     # For each big box
     for i, subimage in enumerate(subimages):
@@ -184,12 +184,10 @@ def preprocess_image(path_to_image):
         threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
         threshed_subimage = threshold_mean(threshed_subimage)
 
-        # TODO: this will probably be redone with a configure file in the future (connect to generator)
-        # But for now, ID has 4 columns, but answers have 5 columns
-        if i != len(subimages) - 1:
-            num_col = 5
+        if i != 0:
+            num_col = num_cols
         else:
-            num_col = 4
+            num_col = config["student_id_rect"]["grid"]["cols"]
 
         # Iterate over the circles
         for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
@@ -229,6 +227,8 @@ def preprocess_image(path_to_image):
         print(answers[i])
 
 
+# IMG_FOLDER = "../generated_pdfs"
 IMG_FOLDER = "../tsp_zaznamove_archy"
+# INPUT_FILE = "1234_bubble_sheet.pdf"
 INPUT_FILE = "naskenovany_vyplneny.pdf"
 preprocess_image(f"{IMG_FOLDER}/{INPUT_FILE}")
