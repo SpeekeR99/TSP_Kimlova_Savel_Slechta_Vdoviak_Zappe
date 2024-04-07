@@ -30,12 +30,12 @@
       "cols": ""
     },
     "label_offset": {
-      "main": 0.05,
+      "main": 0.04,
       "rows": 0.04,
       "cols": 0.05
     },
     "label_font_size": {
-      "main": 20,
+      "main": 15,
       "rows": 12,
       "cols": 12
     }
