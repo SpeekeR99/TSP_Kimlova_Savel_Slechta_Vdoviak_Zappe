@@ -7,6 +7,38 @@ from ai.src.utils import load_config
 question_number = 1
 
 
+def draw_header(ax, config, rect_x, rect_y):
+    """
+    Draw the header of the bubble sheet
+    :param ax: The axis to draw the rectangle on
+    :param config: Configuration dictionary
+    :param rect_x: The x-coordinate of the rectangle top left corner
+    :param rect_y: The y-coordinate of the rectangle top left corner
+    """
+    PIXELS_PER_INCH = 96
+
+    # Configuration
+    header_title = config["header"]["title"]
+    header_date = config["header"]["date"]
+    header_name = config["header"]["name"]
+    font_size = config["header"]["font_size"]
+    font_size_relative = font_size / (ax.figure.get_figheight() * PIXELS_PER_INCH)
+    font = config["header"]["font"]
+    text_color = config["colors"]["main_color"]
+
+    # Draw the header
+    rect_y -= font_size_relative
+    rect_x -= font_size_relative
+    ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size + 5, fontname=font,
+            color=text_color, weight='bold')
+    font_size_offset = font_size_relative * 2
+    ax.text(rect_x, rect_y - font_size_offset, header_date, ha='left', va='bottom', fontsize=font_size, fontname=font,
+            color=text_color)
+    font_size_offset = font_size_relative * 4
+    ax.text(rect_x, rect_y - font_size_offset, header_name, ha='left', va='bottom', fontsize=font_size, fontname=font,
+            color=text_color)
+
+
 def gray_out(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=False):
     """
     Gray out every other column or row
@@ -245,6 +277,9 @@ def generate_bubble_sheet(student_id):
     x = config["student_id_rect"]["x"]
     y = config["student_id_rect"]["y"]
     draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
+
+    # Draw the header
+    draw_header(ax, x, 1 - y, config)
 
     # Offset between rectangles
     offset_between_rect = config["rect_settings"]["rect_space_between"]
