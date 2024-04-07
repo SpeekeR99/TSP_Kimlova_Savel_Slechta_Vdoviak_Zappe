@@ -8,7 +8,6 @@ import imutils.contours
 from ai.src.utils import load_config
 
 
-
 def load_pdf(file_path):
     """
     Load pdf file and return list of images
@@ -116,7 +115,13 @@ def find_edges(image):
     edges = cv2.Canny(image, 100, 200)
     return edges
 
+
 def preprocess_image(path_to_image):
+    """
+    Preprocess the image and detect filled bubbles
+    :param path_to_image: Path to the image
+    :return: List of detected answers
+    """
 
     # Load the configuration file
     config = load_config()
@@ -132,7 +137,7 @@ def preprocess_image(path_to_image):
     # Find the big boxes around the answer bubbles
     contours = find_contours(threshed_filled)
     # Pick k largest contours
-    k = np.ceil(num_questions/num_rows).astype(int) + 1
+    k = np.ceil(num_questions / num_rows).astype(int) + 1
     contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
     contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
 
@@ -148,20 +153,21 @@ def preprocess_image(path_to_image):
         w -= 2 * diff
         h -= 2 * diff
 
-        subimage = scanned_filled[y:y+h, x:x+w]
+        subimage = scanned_filled[y:y + h, x:x + w]
         subimages.append(subimage)
 
     # Detect filled bubbles
     answers = []
 
     # Number of circles in each subimage
-    student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"]["cols"]
+    student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"][
+        "cols"]  # rows * cols
     answer_grid = [student_id_grid]
     max_grid = num_rows * num_cols
-    answer_grid += [max_grid] * (k - 2)
-    answer_grid.append((num_questions - (k - 2) * num_rows) * num_cols)
+    answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
+    answer_grid.append(  # last grid can be partially filled (only the remaining questions)
+        (num_questions - (k - 2) * num_rows) * num_cols)
     how_many_circles = answer_grid
-    print(how_many_circles)
 
     # For each big box
     for i, subimage in enumerate(subimages):
@@ -185,9 +191,9 @@ def preprocess_image(path_to_image):
         threshed_subimage = threshold_mean(threshed_subimage)
 
         if i != 0:
-            num_col = num_cols
+            num_col = num_cols  # it is an answer grid
         else:
-            num_col = config["student_id_rect"]["grid"]["cols"]
+            num_col = config["student_id_rect"]["grid"]["cols"]  # it is a student id grid
 
         # Iterate over the circles
         for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
@@ -202,13 +208,14 @@ def preprocess_image(path_to_image):
                 (x, y, w, h) = cv2.boundingRect(bubble)
 
                 # Just for showcase purposes
-                cv2.rectangle(circle_image, (x, y), (x+w, y+h), (255, 0, 0), 2)
+                cv2.rectangle(circle_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
 
                 # Find the bubble subimage and convert it to grayscale
-                bubble_subimage = threshed_subimage[y:y+h, x:x+w]
+                bubble_subimage = threshed_subimage[y:y + h, x:x + w]
                 one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
                 # Close the image using morphological operations
-                closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE, cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+                closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE,
+                                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
 
                 # Count the number of white pixels and the total number of pixels
                 pixels = cv2.countNonZero(closed)
@@ -222,7 +229,8 @@ def preprocess_image(path_to_image):
                     answers[i][q].append(0)
 
         # Show the images (just for showcase purposes)
-        show_images([f'subimage{i+1}', f'threshed_subimage{i+1}', f'circle_image{i+1}'], [subimage, threshed_subimage, circle_image])
+        show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
+                    [subimage, threshed_subimage, circle_image])
         # Print the answers (just for showcase purposes)
         print(answers[i])
 
