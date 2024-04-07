@@ -6,7 +6,7 @@ import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
 
-IMG_FOLDER = "tsp_zaznamove_archy"
+IMG_FOLDER = "../tsp_zaznamove_archy"
 INPUT_FILE = "naskenovany_vyplneny.pdf"
 
 

@@ -1,2 +1,3 @@
 .idea
 src/output.pdf
+generated_pdfs/*
