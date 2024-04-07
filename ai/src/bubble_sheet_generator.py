@@ -30,7 +30,7 @@ def draw_header(ax, rect_x, rect_y, config):
     # Draw the header
     rect_y -= font_size_relative
     rect_x -= font_size_relative
-    ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size, fontname=font, color=text_color)
+    ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size+5, fontname=font, color=text_color, weight='bold')
     font_size_offset = font_size_relative * 2
     ax.text(rect_x, rect_y - font_size_offset, header_date, ha='left', va='bottom', fontsize=font_size, fontname=font,
             color=text_color)
