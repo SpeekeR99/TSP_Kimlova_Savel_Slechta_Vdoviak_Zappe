@@ -1,5 +1,5 @@
 import { useMutation } from 'react-query'
-import { useSnackbarContext } from '../components/hooks/useSnackbarContext'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 
