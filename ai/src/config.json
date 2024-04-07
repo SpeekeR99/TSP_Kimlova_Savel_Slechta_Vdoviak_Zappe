@@ -5,9 +5,11 @@
     "text_color": "gray"
   },
   "header": {
-    "title": "Multiple Choice Answer Sheet",
-    "date": "Date: ",
-    "signature": "Signature: "
+    "font_size": 15,
+    "font": "Arial",
+    "title": "První písemná práce z předmětu KIV/ADT",
+    "date": "Datum: ",
+    "name": "Jméno: "
   },
   "rect_settings": {
     "rect_line_width": 2,
@@ -23,7 +25,7 @@
       "cols": 4
     },
     "label": {
-      "main": "Student ID",
+      "main": "ID Studenta",
       "rows": "",
       "cols": ""
     },
