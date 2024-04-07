@@ -1,5 +1,3 @@
-import time
-
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
@@ -9,15 +7,16 @@ from ai.src.utils import load_config
 question_number = 1
 
 
-def draw_header(ax, rect_x, rect_y, config):
+def draw_header(ax, config, rect_x, rect_y):
     """
     Draw the header of the bubble sheet
     :param ax: The axis to draw the rectangle on
+    :param config: Configuration dictionary
     :param rect_x: The x-coordinate of the rectangle top left corner
     :param rect_y: The y-coordinate of the rectangle top left corner
-    :param config: Configuration dictionary
     """
     PIXELS_PER_INCH = 96
+
     # Configuration
     header_title = config["header"]["title"]
     header_date = config["header"]["date"]
@@ -30,7 +29,8 @@ def draw_header(ax, rect_x, rect_y, config):
     # Draw the header
     rect_y -= font_size_relative
     rect_x -= font_size_relative
-    ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size+5, fontname=font, color=text_color, weight='bold')
+    ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size + 5, fontname=font,
+            color=text_color, weight='bold')
     font_size_offset = font_size_relative * 2
     ax.text(rect_x, rect_y - font_size_offset, header_date, ha='left', va='bottom', fontsize=font_size, fontname=font,
             color=text_color)
