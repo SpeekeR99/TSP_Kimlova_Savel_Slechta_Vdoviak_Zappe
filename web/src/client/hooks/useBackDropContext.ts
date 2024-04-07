@@ -1,5 +1,5 @@
 import { useContext } from 'react'
-import { backDropContext } from '../../context/backDropContext'
+import { backDropContext } from '../context/backDropContext'
 
 export const useBackDropContext = () => {
 	const context = useContext(backDropContext)
