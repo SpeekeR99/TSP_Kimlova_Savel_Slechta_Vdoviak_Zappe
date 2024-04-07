@@ -279,7 +279,7 @@ def generate_bubble_sheet(student_id):
     draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
 
     # Draw the header
-    draw_header(ax, x, 1 - y, config)
+    draw_header(ax, config, x, 1 - y)
 
     # Offset between rectangles
     offset_between_rect = config["rect_settings"]["rect_space_between"]
