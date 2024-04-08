@@ -1,7 +1,7 @@
 import { useMutation } from 'react-query'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
-import { useSnackbarContext } from '../components/hooks/useSnackbarContext'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
 const fetchData = async (quizId) => {
 	if (!quizId) return

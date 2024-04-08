@@ -2,7 +2,7 @@ import React, { useState, ChangeEvent, useEffect, FC } from 'react'
 import BaseLayout from '../components/BaseLayout'
 import { Box, Button, Container, Stack, TextField } from '@mui/material'
 import { useGenerateActions } from '../actions/useGenerateActions'
-import { useBackDropContext } from '../components/hooks/useBackDropContext'
+import { useBackDropContext } from '../hooks/useBackDropContext'
 
 const Form: FC = () => {
 	const [quizId, setQuizId] = useState<string>('')
