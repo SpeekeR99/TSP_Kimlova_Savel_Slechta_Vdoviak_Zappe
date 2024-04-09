@@ -7,7 +7,7 @@ import {
 } from 'react-dropzone'
 import { Stack } from '@mui/system'
 import { useGenerateActions } from '../actions/useGenerateActions'
-import { useBackDropContext } from './hooks/useBackDropContext'
+import { useBackDropContext } from '../hooks/useBackDropContext'
 
 const MyDropzone = () => {
 	const { mutate, isLoading } = useGenerateActions()

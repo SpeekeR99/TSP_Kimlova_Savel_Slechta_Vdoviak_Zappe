@@ -2,7 +2,7 @@ import React, { FC } from 'react'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { Alert, AlertColor, Snackbar } from '@mui/material'
 import { setSnackbarClose } from '../context/snackbarContext/snackbarActions'
-import { useSnackbarContext } from './hooks/useSnackbarContext'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
 const AppSnackbar: FC = () => {
 	const {
