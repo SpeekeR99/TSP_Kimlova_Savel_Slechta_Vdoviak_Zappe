@@ -266,8 +266,33 @@ def generate_bubble_sheet(student_id):
     # Load the configuration file
     config = load_config()
 
-    # Create a new figure with size of A4 paper
+    # A4 paper size in inches
     cm = 1 / 2.54  # Centimeters in inches
+    A4 = (29.7 * cm, 21.0 * cm)
+
+    # Offset between rectangles
+    offset_between_rect = config["rect_settings"]["rect_space_between"]
+
+    # Number of questions
+    num_of_q = config["number_of_questions"]
+    num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
+    num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
+    last_rect_q = num_of_q % num_of_q_per_rect
+
+    # Calculate the number of rectangles that can fit in the figure
+    num_of_rects_per_page = 0
+    aspect_ratio = A4[0] / A4[1]
+    width_so_far = config["student_id_rect"]["width"] + 2 * offset_between_rect  # Every page has student ID field
+
+    while width_so_far < aspect_ratio - config["answer_rect"]["width"] - 1.5 * offset_between_rect:
+        width_so_far += config["answer_rect"]["width"] + 1.5 * offset_between_rect
+        num_of_rects_per_page += 1
+
+    # Calculate the number of pages needed
+    num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
+    print("Number of pages needed:", num_of_pages)
+
+    # Create a figure
     fig, ax = plt.subplots(figsize=(29.7 * cm, 21.0 * cm), dpi=300)
 
     # Set the aspect of the plot to be equal
@@ -280,15 +305,6 @@ def generate_bubble_sheet(student_id):
 
     # Draw the header
     draw_header(ax, config, x, 1 - y)
-
-    # Offset between rectangles
-    offset_between_rect = config["rect_settings"]["rect_space_between"]
-
-    # Number of questions
-    num_of_q = config["number_of_questions"]
-    num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
-    num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
-    last_rect_q = num_of_q % num_of_q_per_rect
 
     # Define answers fields
     x += config["student_id_rect"]["width"] + 2 * offset_between_rect
