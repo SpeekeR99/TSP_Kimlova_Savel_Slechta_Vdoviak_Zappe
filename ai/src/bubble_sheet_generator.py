@@ -111,12 +111,12 @@ def draw_bubbles(ax, config, rect_x, rect_y, rect_type, last_rect_q, student_id)
     for i in range(cols):
         for j in range(rows):
             # Skip the bubbles if this is the last rectangle and the question number is less than the last_rect_q
-            if last_rect_q is not None and j < last_rect_q:
+            if last_rect_q is not None and j >= last_rect_q:
                 continue
 
             # Calculate the position of the bubble
             x = rect_x + grid_width * i
-            y = rect_y + grid_height * j
+            y = rect_y + height - (grid_height * (j + 1))
 
             # If this is the student ID rectangle, fill the bubbles according to the student ID
             face_color = "none"
@@ -258,6 +258,42 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     draw_labels(ax, config, rect_x, rect_y, rect_type, last_rect_q=last_rect_q)
 
 
+def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q):
+    """
+    Draw a page of the bubble sheet
+    :param ax: Axis to draw the page on
+    :param config: Configuration dictionary
+    :param student_id: Student ID
+    :param page: Current page number
+    :param num_of_pages: Number of pages
+    :param num_of_rects_in_page: Number of rectangles in each page
+    :param offset_between_rect: Offset between rectangles
+    :param last_rect_q: Number of questions in the last rectangle
+    """
+    # Define the Student ID field
+    x = config["student_id_rect"]["x"]
+    y = config["student_id_rect"]["y"]
+    draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
+
+    # Draw the header
+    draw_header(ax, config, x, 1 - y)
+
+    # Define answers fields
+    x += config["student_id_rect"]["width"] + 2 * offset_between_rect
+
+    num_of_rects_this_page = num_of_rects_in_page[page]
+    for i in range(num_of_rects_this_page):
+        # Last rectangle has less questions (maybe)
+        if i == num_of_rects_this_page - 1 and last_rect_q != 0 and page == num_of_pages - 1:
+            draw_rect(ax, config, x, y, last_rect_q=last_rect_q)
+        # Normal rectangle
+        else:
+            draw_rect(ax, config, x, y)
+
+        # Move to the next rectangle
+        x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
+
+
 def generate_bubble_sheet(student_id):
     """
     Main function to generate the bubble sheet
@@ -290,38 +326,28 @@ def generate_bubble_sheet(student_id):
 
     # Calculate the number of pages needed
     num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
-    print("Number of pages needed:", num_of_pages)
+    print(f"Number of pages: {num_of_pages}")
 
-    # Create a figure
-    fig, ax = plt.subplots(figsize=(29.7 * cm, 21.0 * cm), dpi=300)
-
-    # Set the aspect of the plot to be equal
-    ax.set_aspect('equal', adjustable='datalim')
-
-    # Define the Student ID field
-    x = config["student_id_rect"]["x"]
-    y = config["student_id_rect"]["y"]
-    draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
-
-    # Draw the header
-    draw_header(ax, config, x, 1 - y)
-
-    # Define answers fields
-    x += config["student_id_rect"]["width"] + 2 * offset_between_rect
-
-    for i in range(num_of_rect):
-        # Last rectangle has less questions (maybe)
-        if i == num_of_rect - 1 and last_rect_q != 0:
-            draw_rect(ax, config, x, y, last_rect_q=last_rect_q)
-        # Normal rectangle
+    # Calculate the number of rectangles in each page
+    num_of_rects_in_page = []
+    for page in range(num_of_pages):
+        if page == num_of_pages - 1 and last_rect_q != 0 and num_of_rect % num_of_rects_per_page != 0:
+            num_of_rects_in_page.append(num_of_rect % num_of_rects_per_page)
         else:
-            draw_rect(ax, config, x, y)
+            num_of_rects_in_page.append(num_of_rects_per_page)
+    print(f"Number of rectangles in each page: {num_of_rects_in_page}")
 
-        # Move to the next rectangle
-        x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
+    for page in range(num_of_pages):
+        # Create a figure
+        fig, ax = plt.subplots(figsize=A4, dpi=300)
 
-    # Turn off the axis but keep the frame
-    ax.axis('off')
-    # Save the figure as a PDF file
-    file_name = '../generated_pdfs/' + str(student_id) + '_bubble_sheet.pdf'
-    plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
+        # Set the aspect of the plot to be equal
+        ax.set_aspect('equal', adjustable='datalim')
+
+        draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q)
+
+        # Turn off the axis but keep the frame
+        ax.axis("off")
+        # Save the figure as a PDF file
+        file_name = f"../generated_pdfs/{student_id}_bubble_sheet_page_{page + 1}.pdf"
+        plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
