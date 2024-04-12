@@ -1,6 +1,8 @@
+import os
 import numpy as np
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
+import fitz
 from ai.src.utils import load_config
 
 # Question number (global across all rectangles and sheets)
@@ -326,7 +328,6 @@ def generate_bubble_sheet(student_id):
 
     # Calculate the number of pages needed
     num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
-    print(f"Number of pages: {num_of_pages}")
 
     # Calculate the number of rectangles in each page
     num_of_rects_in_page = []
@@ -335,8 +336,9 @@ def generate_bubble_sheet(student_id):
             num_of_rects_in_page.append(num_of_rect % num_of_rects_per_page)
         else:
             num_of_rects_in_page.append(num_of_rects_per_page)
-    print(f"Number of rectangles in each page: {num_of_rects_in_page}")
 
+    # Generate the bubble sheet for each page
+    sub_pdfs = []
     for page in range(num_of_pages):
         # Create a figure
         fig, ax = plt.subplots(figsize=A4, dpi=300)
@@ -350,4 +352,24 @@ def generate_bubble_sheet(student_id):
         ax.axis("off")
         # Save the figure as a PDF file
         file_name = f"../generated_pdfs/{student_id}_bubble_sheet_page_{page + 1}.pdf"
+        sub_pdfs.append(file_name)
         plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
+
+        # Cleanup
+        plt.close()
+        fig.clf()
+
+    # Merge the PDFs now
+    merged_pdf = fitz.open()
+    for pdf in sub_pdfs:
+        with fitz.open(pdf) as pdf_file:
+            merged_pdf.insert_pdf(pdf_file)
+
+    # Save the final PDF
+    final_pdf = f"../generated_pdfs/{student_id}_bubble_sheet.pdf"
+    merged_pdf.save(final_pdf)
+    merged_pdf.close()
+
+    # Remove the sub PDFs
+    for pdf in sub_pdfs:
+        os.remove(pdf)
