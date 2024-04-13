@@ -2,9 +2,6 @@ import express, { Express, NextFunction, Request, Response } from 'express'
 import dotenv from 'dotenv'
 import routes from './routes'
 import { Route } from './interface'
-import webpack from 'webpack'
-import webpackConfig from '../../webpack.config.dev'
-import webpackDevMiddleware from 'webpack-dev-middleware'
 import errorHandler from './middleware/error-handler'
 import path from 'path'
 const DIST_DIR = path.resolve(__dirname, '../../')
@@ -28,8 +25,9 @@ if (process.env.NODE_ENV === 'production') {
 		res.sendFile(path.join(DIST_DIR, 'index.html'))
 	})
 } else {
-	const compiler = webpack(webpackConfig)
-	const wdMiddleware = webpackDevMiddleware(compiler)
+	const config = require('../../webpack.config')
+	const compiler = require('webpack')(config)
+	const wdMiddleware = require('webpack-dev-middleware')(compiler)
 
 	app.use(require('webpack-hot-middleware')(compiler))
 	app.use(wdMiddleware)
