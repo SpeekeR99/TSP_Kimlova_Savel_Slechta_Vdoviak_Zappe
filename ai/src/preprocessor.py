@@ -133,44 +133,85 @@ def preprocess_image(path_to_image, path_to_output):
     num_rows = config["answer_rect"]["grid"]["rows"]
     num_cols = config["answer_rect"]["grid"]["cols"]
 
-    scanned_filled = load_pdf(path_to_image)[0]
-    gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
-    threshed_filled = threshold_otsu(gray_filled, 170)
+    scanned_filled_images = load_pdf(path_to_image)
 
-    # Find the big boxes around the answer bubbles
-    contours = find_contours(threshed_filled)
-    # Pick k largest contours
-    k = np.ceil(num_questions / num_rows).astype(int) + 1
-    contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
-    contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
+    # A4 paper size in inches
+    cm = 1 / 2.54  # Centimeters in inches
+    A4 = (29.7 * cm, 21.0 * cm)
+
+    # Offset between rectangles
+    offset_between_rect = config["rect_settings"]["rect_space_between"]
+
+    # Number of questions
+    num_of_q = config["number_of_questions"]
+    num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
+    num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
+    last_rect_q = num_of_q % num_of_q_per_rect
+
+    # Calculate the number of rectangles that can fit in the figure
+    num_of_rects_per_page = 0
+    aspect_ratio = A4[0] / A4[1]
+    width_so_far = config["student_id_rect"]["width"] + 2 * offset_between_rect  # Every page has student ID field
+
+    while width_so_far < aspect_ratio - config["answer_rect"]["width"] - 1.5 * offset_between_rect:
+        width_so_far += config["answer_rect"]["width"] + 1.5 * offset_between_rect
+        num_of_rects_per_page += 1
+
+    # Calculate the number of pages needed
+    num_of_pages = len(scanned_filled_images)
+
+    # Calculate the number of rectangles in each page
+    num_of_rects_in_page = []
+    for page in range(num_of_pages):
+        if page == num_of_pages - 1 and last_rect_q != 0 and num_of_rect % num_of_rects_per_page != 0:
+            num_of_rects_in_page.append(num_of_rect % num_of_rects_per_page)
+        else:
+            num_of_rects_in_page.append(num_of_rects_per_page)
+
+    print(num_of_rects_in_page)
 
     # Create subimages from the big boxes
     subimages = []
-    for contour in contours:
-        x, y, w, h = cv2.boundingRect(contour)
-
-        # Throw away 1% of the border of the image
-        diff = w // 100 if w > h else h // 100
-        x += diff
-        y += diff
-        w -= 2 * diff
-        h -= 2 * diff
-
-        subimage = scanned_filled[y:y + h, x:x + w]
-        subimages.append(subimage)
-
-    # Detect filled bubbles
     answers = []
+    how_many_circles = []
+    for indx, scanned_filled in enumerate(scanned_filled_images):
+        # Convert the image to grayscale and threshold it
+        gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
+        threshed_filled = threshold_otsu(gray_filled, 170)
 
-    # Number of circles in each subimage
-    student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"][
-        "cols"]  # rows * cols
-    answer_grid = [student_id_grid]
-    max_grid = num_rows * num_cols
-    answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
-    answer_grid.append(  # last grid can be partially filled (only the remaining questions)
-        (num_questions - (k - 2) * num_rows) * num_cols)
-    how_many_circles = answer_grid
+        # Find the big boxes around the answer bubbles
+        contours = find_contours(threshed_filled)
+        # Pick k largest contours
+        k = num_of_rects_in_page.pop(0) + 1  # +1 for student id
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
+        contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
+
+        for contour in contours:
+            x, y, w, h = cv2.boundingRect(contour)
+
+            # Throw away 1% of the border of the image
+            diff = w // 100 if w > h else h // 100
+            x += diff
+            y += diff
+            w -= 2 * diff
+            h -= 2 * diff
+
+            subimage = scanned_filled[y:y + h, x:x + w]
+            subimages.append(subimage)
+
+        # Number of circles in each subimage
+        student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"][
+            "cols"]  # rows * cols
+        answer_grid = [student_id_grid]
+        max_grid = num_rows * num_cols
+        answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
+        if num_of_pages == indx + 1 and last_rect_q != 0:
+            answer_grid.append(last_rect_q * num_cols)
+        else:
+            answer_grid.append(num_rows * num_cols)
+
+        how_many_circles += answer_grid
+        print(how_many_circles)
 
     # For each big box
     for i, subimage in enumerate(subimages):
@@ -240,3 +281,5 @@ def preprocess_image(path_to_image, path_to_output):
 
     with open(path_to_output, "w", encoding="utf-8") as fp:
         json.dump(output, fp, indent=4, ensure_ascii=False)
+
+preprocess_image("../generated_pdfs/1234_bubble_sheet.pdf", "output.json")
