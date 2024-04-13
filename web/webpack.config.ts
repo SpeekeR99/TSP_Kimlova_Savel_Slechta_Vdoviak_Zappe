@@ -4,6 +4,7 @@ import { Configuration } from 'webpack'
 
 const config: Configuration = {
 	entry: path.resolve(__dirname, './dist/src/client/index.js'),
+	devtool: false,
 	module: {
 		rules: [
 			{
@@ -29,6 +30,11 @@ const config: Configuration = {
 			template: path.resolve(__dirname, './src/client/public/index.html'),
 		}),
 	],
+	performance: {
+		hints: false,
+		maxEntrypointSize: 512000,
+		maxAssetSize: 512000
+	}
 }
 
 export default config
