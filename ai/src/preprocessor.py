@@ -129,7 +129,6 @@ def preprocess_image(path_to_image, path_to_output):
     # Load the configuration file
     config = load_config()
 
-    num_questions = config["number_of_questions"]
     num_rows = config["answer_rect"]["grid"]["rows"]
     num_cols = config["answer_rect"]["grid"]["cols"]
 
@@ -168,7 +167,6 @@ def preprocess_image(path_to_image, path_to_output):
         else:
             num_of_rects_in_page.append(num_of_rects_per_page)
 
-    print(num_of_rects_in_page)
 
     # Create subimages from the big boxes
     subimages = []
@@ -205,13 +203,12 @@ def preprocess_image(path_to_image, path_to_output):
         answer_grid = [student_id_grid]
         max_grid = num_rows * num_cols
         answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
-        if num_of_pages == indx + 1 and last_rect_q != 0:
+        if num_of_pages == indx + 1 and last_rect_q != 0: # last page
             answer_grid.append(last_rect_q * num_cols)
         else:
             answer_grid.append(num_rows * num_cols)
 
         how_many_circles += answer_grid
-        print(how_many_circles)
 
     # For each big box
     for i, subimage in enumerate(subimages):
@@ -281,5 +278,3 @@ def preprocess_image(path_to_image, path_to_output):
 
     with open(path_to_output, "w", encoding="utf-8") as fp:
         json.dump(output, fp, indent=4, ensure_ascii=False)
-
-preprocess_image("../generated_pdfs/1234_bubble_sheet.pdf", "output.json")
