@@ -25,7 +25,7 @@ if (process.env.NODE_ENV === 'production') {
 		res.sendFile(path.join(DIST_DIR, 'index.html'))
 	})
 } else {
-	const config = require('../../webpack.config')
+	const config = require('../../webpack.config.dev')
 	const compiler = require('webpack')(config)
 	const wdMiddleware = require('webpack-dev-middleware')(compiler)
 
