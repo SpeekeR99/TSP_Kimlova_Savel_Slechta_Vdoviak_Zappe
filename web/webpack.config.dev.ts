@@ -4,7 +4,7 @@ import webpack, { Configuration } from 'webpack'
 import { merge } from 'webpack-merge'
 import commonConfig from './webpack.config'
 
-const config: Configuration = merge(commonConfig, {
+module.exports = merge(commonConfig, {
 	entry: [
 		path.resolve(__dirname, './src/client/index.tsx'),
 		'webpack-hot-middleware/client?quiet=true',
@@ -16,5 +16,3 @@ const config: Configuration = merge(commonConfig, {
 		new webpack.NoEmitOnErrorsPlugin(),
 	],
 })
-
-export default config
