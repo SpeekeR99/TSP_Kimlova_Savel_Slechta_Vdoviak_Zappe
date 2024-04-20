@@ -3,13 +3,15 @@ import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
-const fetchData = async (quizId) => {
-	if (!quizId) return
-	await new Promise((resolve) => setTimeout(resolve, 2000))
+const fetchData = async (file: File) => {
+	if (!file) return
+	const formData = new FormData()
+	formData.append('file', file)
+
 	try {
-		const response = await fetch('/0/generate/', {
+		const response = await fetch('/0/generate/from-xml', {
 			method: 'POST',
-			body: JSON.stringify(quizId),
+			body: formData,
 		})
 
 		if (response.ok) {
@@ -23,7 +25,7 @@ const fetchData = async (quizId) => {
 	}
 }
 
-export const useGenerateActions = () => {
+export const useGenerateFromXML = () => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>

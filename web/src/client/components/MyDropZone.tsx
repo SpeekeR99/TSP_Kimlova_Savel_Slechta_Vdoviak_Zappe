@@ -6,11 +6,17 @@ import {
 	DropzoneInputProps,
 } from 'react-dropzone'
 import { Stack } from '@mui/system'
-import { useGenerateActions } from '../actions/useGenerateActions'
 import { useBackDropContext } from '../hooks/useBackDropContext'
+import { UseMutationResult } from 'react-query'
 
-const MyDropzone = () => {
-	const { mutate, isLoading } = useGenerateActions()
+interface MyDropzoneProps {
+	mimeType: string
+	extension: string
+	useAction: () => UseMutationResult
+}
+
+const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
+	const { mutate, isLoading } = useAction()
 	const [file, setFile] = useState<File | null>(null)
 	const { setOpenBackDrop } = useBackDropContext()
 
@@ -27,13 +33,13 @@ const MyDropzone = () => {
 		getInputProps,
 		isDragActive,
 	}: {
-		getRootProps: (props?: DropzoneRootProps) => DropzoneRootProps
-		getInputProps: (props?: DropzoneInputProps) => DropzoneInputProps
+		getRootProps: () => DropzoneRootProps
+		getInputProps: () => DropzoneInputProps
 		isDragActive: boolean
 	} = useDropzone({
 		onDrop,
 		accept: {
-			'application/pdf': ['.pdf'],
+			[mimeType]: [extension],
 		},
 		maxFiles: 1,
 	})
@@ -61,7 +67,7 @@ const MyDropzone = () => {
 						<Typography variant='h6' color='#0c4b63'>
 							Drag 'n' drop or select your file...
 						</Typography>
-						<em>(Allowed types: .pdf)</em>
+						<em>(Allowed types: {extension})</em>
 					</>
 				)}
 			</Box>
@@ -86,7 +92,7 @@ const MyDropzone = () => {
 				<Button
 					variant='contained'
 					disabled={!file}
-					onClick={(e) => mutate(file)}
+					onClick={() => mutate(file)}
 				>
 					Upload file
 				</Button>
