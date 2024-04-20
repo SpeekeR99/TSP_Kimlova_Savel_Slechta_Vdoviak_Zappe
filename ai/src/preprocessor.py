@@ -3,27 +3,11 @@ import json
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
-import fitz
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
 from ai.src.utils import load_config
-
-
-def load_pdf(file_path):
-    """
-    Load pdf file and return list of images
-    :param file_path: Path to pdf file
-    :return: List of images
-    """
-    pdf = fitz.open(file_path)
-    images = []
-    for page_num in range(len(pdf)):  # Iterate over all pages
-        page = pdf[page_num]
-        image = page.get_pixmap(dpi=300)
-        image = np.frombuffer(image.samples, dtype=np.uint8).reshape(image.h, image.w, 3)  # Convert to numpy array
-        images.append(image)
-    return images
+from ai.src.pdf_rotator import load_pdf
 
 
 def show_images(titles, images):
