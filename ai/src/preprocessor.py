@@ -173,6 +173,7 @@ def preprocess_image(path_to_image, path_to_output):
     answers = []
     how_many_circles = []
     for indx, scanned_filled in enumerate(scanned_filled_images):
+        subimages.append([])
         # Convert the image to grayscale and threshold it
         gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
         threshed_filled = threshold_otsu(gray_filled, 170)
@@ -195,12 +196,15 @@ def preprocess_image(path_to_image, path_to_output):
             h -= 2 * diff
 
             subimage = scanned_filled[y:y + h, x:x + w]
-            subimages.append(subimage)
+            subimages[-1].append(subimage)
 
         # Number of circles in each subimage
         student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"][
             "cols"]  # rows * cols
-        answer_grid = [student_id_grid]
+        if indx == 0:
+            answer_grid = [student_id_grid]
+        else:
+            answer_grid = []
         max_grid = num_rows * num_cols
         answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
         if num_of_pages == indx + 1 and last_rect_q != 0: # last page
@@ -209,69 +213,74 @@ def preprocess_image(path_to_image, path_to_output):
             answer_grid.append(num_rows * num_cols)
 
         how_many_circles += answer_grid
-
     # For each big box
-    for i, subimage in enumerate(subimages):
-        # Create array for answers
-        answers.append([])
-
-        # Find contours of circles
-        gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
-        threshed = threshold_otsu(gray, 170)
-        contours = find_contours(threshed)
-        # Find specified number of circles
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
-        # Sort them top to bottom, for easier processing
-        contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
-
-        # Just for showcase purposes
-        circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
-
-        # Threshold the subimage
-        threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
-        threshed_subimage = threshold_mean(threshed_subimage)
-
-        if i != 0:
-            num_col = num_cols  # it is an answer grid
-        else:
-            num_col = config["student_id_rect"]["grid"]["cols"]  # it is a student id grid
-
-        # Iterate over the circles
-        for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
-            # Sort the contours from left to right
-            subcontours = imutils.contours.sort_contours(contours[j:j + num_col])[0]
+    for page in range(num_of_pages):
+        for s in range(len(subimages[page])):
+            subimage = subimages[page][s]
+            i = page * num_of_rects_per_page + s
+            # Skip the student ID grid for every page except the first one
+            if page != 0 and s == 0:
+                continue
             # Create array for answers
-            answers[i].append([])
+            answers.append([])
 
-            # Iterate over the subcontours
-            for bubble in subcontours:
-                # Find the bounding box of the bubble
-                (x, y, w, h) = cv2.boundingRect(bubble)
+            # Find contours of circles
+            gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
+            threshed = threshold_otsu(gray, 170)
+            contours = find_contours(threshed)
+            # Find specified number of circles
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
+            # Sort them top to bottom, for easier processing
+            contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
 
-                # Just for showcase purposes
-                cv2.rectangle(circle_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+            # Just for showcase purposes
+            circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
 
-                # Find the bubble subimage and convert it to grayscale
-                bubble_subimage = threshed_subimage[y:y + h, x:x + w]
-                one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
-                # Close the image using morphological operations
-                closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE,
-                                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+            # Threshold the subimage
+            threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
+            threshed_subimage = threshold_mean(threshed_subimage)
 
-                # Count the number of white pixels and the total number of pixels
-                pixels = cv2.countNonZero(closed)
-                num_pixels = w * h
+            if i != 0:
+                num_col = num_cols  # it is an answer grid
+            else:
+                num_col = config["student_id_rect"]["grid"]["cols"]  # it is a student id grid
 
-                # We found out that the circle often takes up around 40-50% of the area
-                # So if the whole area is at least 75% filled, the student probably tried to at least fill the circle
-                if pixels > 0.75 * num_pixels:
-                    answers[i][q].append(1)
-                else:
-                    answers[i][q].append(0)
+            # Iterate over the circles
+            for (q, j) in enumerate(np.arange(0, len(contours), num_col)):
+                # Sort the contours from left to right
+                subcontours = imutils.contours.sort_contours(contours[j:j + num_col])[0]
+                # Create array for answers
+                answers[i].append([])
 
-        # Show the images (just for showcase purposes)
-        show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
-                    [subimage, threshed_subimage, circle_image])
+                # Iterate over the subcontours
+                for bubble in subcontours:
+                    # Find the bounding box of the bubble
+                    (x, y, w, h) = cv2.boundingRect(bubble)
+
+                    # Just for showcase purposes
+                    cv2.rectangle(circle_image, (x, y), (x + w, y + h), (255, 0, 0), 2)
+
+                    # Find the bubble subimage and convert it to grayscale
+                    bubble_subimage = threshed_subimage[y:y + h, x:x + w]
+                    one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
+                    # Close the image using morphological operations
+                    closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE,
+                                              cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+
+                    # Count the number of white pixels and the total number of pixels
+                    pixels = cv2.countNonZero(closed)
+                    num_pixels = w * h
+
+                    # We found out that the circle often takes up around 40-50% of the area
+                    # So if the whole area is at least 75% filled, the student probably tried to at least fill the circle
+                    if pixels > 0.75 * num_pixels:
+                        answers[i][q].append(1)
+                    else:
+                        answers[i][q].append(0)
+
+            # Show the images (just for showcase purposes)
+            show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
+                        [subimage, threshed_subimage, circle_image])
 
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}
