@@ -18,10 +18,10 @@ const fetchData = async (file: File) => {
 			const data = await response.json()
 			console.log('Response:', data)
 		} else {
-			console.error('Upload failed:', response.statusText)
+			throw new Error(`Upload failed: ${response.statusText}`)
 		}
 	} catch (error) {
-		console.error('Error:', error)
+		throw new Error(`Error: ${error}`)
 	}
 }
 

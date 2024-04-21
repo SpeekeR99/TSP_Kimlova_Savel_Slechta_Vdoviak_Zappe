@@ -24,7 +24,7 @@ router.post(
 		if (!file) throw new Error('XML file not present!')
 
 		const parsedXML = await parseXMLFile(file)
-		console.log(parsedXML)
+		console.dir(parsedXML, { depth: null })
 		res.json({ status: 'ok' })
 	})
 )
