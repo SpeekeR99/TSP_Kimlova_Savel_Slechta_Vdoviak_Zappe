@@ -1,18 +1,14 @@
 import { useMutation } from 'react-query'
-import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
-const fetchData = async (file: File) => {
-	if (!file) return
-	await new Promise((resolve) => setTimeout(resolve, 2000))
-	const formData = new FormData()
-	formData.append('file', file)
-
+const fetchData = async (quizId) => {
+	if (!quizId) return
 	try {
-		const response = await fetch('/0/process/', {
+		const response = await fetch('/0/generate/from-moodle', {
 			method: 'POST',
-			body: formData,
+			body: JSON.stringify(quizId),
 		})
 
 		if (response.ok) {
@@ -26,7 +22,7 @@ const fetchData = async (file: File) => {
 	}
 }
 
-export const useUploadActions = () => {
+export const useGenerateFromMoodle = () => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>

@@ -1,12 +1,13 @@
 import React, { useState, ChangeEvent, useEffect, FC } from 'react'
 import BaseLayout from '../components/BaseLayout'
 import { Box, Button, Container, Stack, TextField } from '@mui/material'
-import { useGenerateActions } from '../actions/useGenerateActions'
 import { useBackDropContext } from '../hooks/useBackDropContext'
+import { useGenerateFromMoodle } from '../hooks/useGenerateFromFromMoodle'
+import MyBreadcrump from '../components/MyBreadcrump'
 
 const Form: FC = () => {
 	const [quizId, setQuizId] = useState<string>('')
-	const { mutate, isLoading } = useGenerateActions()
+	const { mutate, isLoading } = useGenerateFromMoodle()
 	const { setOpenBackDrop } = useBackDropContext()
 
 	const handleQuizIdChange = (e: ChangeEvent<HTMLInputElement>) => {
@@ -45,9 +46,10 @@ const Form: FC = () => {
 	)
 }
 
-const GeneratePage: FC = () => {
+const GenerateFromMoodlePage: FC = () => {
 	return (
 		<BaseLayout>
+			<MyBreadcrump parts={['generate', 'from-moodle']} />
 			<Container sx={{ width: '60%' }}>
 				<Stack
 					textAlign='center'
@@ -66,4 +68,4 @@ const GeneratePage: FC = () => {
 	)
 }
 
-export default GeneratePage
+export default GenerateFromMoodlePage

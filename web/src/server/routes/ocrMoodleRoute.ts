@@ -8,7 +8,7 @@ const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
 
 router.post(
-	'/',
+	'/arks',
 	upload.single('file'),
 	catchError(async (req: Request & { file: File }, res: Response) => {
 		console.log(req.file)
