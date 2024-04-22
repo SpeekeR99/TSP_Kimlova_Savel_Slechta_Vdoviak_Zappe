@@ -38,13 +38,13 @@ def draw_labels(student_id, student_questions, question_answers, filename):
 
         question_number = "Otázka " + str(i + 1)
         c.drawString(x, y, question_number + ": " + question)
-        y -= (label_height + y_spacing)
+        y -= (label_height + y_spacing / 2)
 
         for i, answer in enumerate(answers):
             x_answer = x + 20
             question_letter = chr(65 + i) + "."
             c.drawString(x_answer, y, question_letter + " " + answer)
-            y -= (label_height + y_spacing / 2)
+            y -= (label_height + y_spacing / 5)
 
         # if questions do not fit one page
         if y - (label_height + y_spacing) < 0:
