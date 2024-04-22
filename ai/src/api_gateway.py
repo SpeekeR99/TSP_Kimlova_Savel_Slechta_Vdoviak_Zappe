@@ -2,8 +2,8 @@ import os
 import zipfile
 from flask import Flask, request, jsonify, send_file
 
-from ai.src.generator_handler import generate_sheets
-from ai.src.preprocessor import preprocess_image
+from generator_handler import generate_sheets
+from preprocessor import preprocess_image
 
 app = Flask(__name__)
 

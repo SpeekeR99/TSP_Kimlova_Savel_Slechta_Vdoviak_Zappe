@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
-from ai.src.utils import load_config
-from ai.src.pdf_rotator import load_pdf
+from utils import load_config
+from pdf_rotator import load_pdf
 
 
 def show_images(titles, images):

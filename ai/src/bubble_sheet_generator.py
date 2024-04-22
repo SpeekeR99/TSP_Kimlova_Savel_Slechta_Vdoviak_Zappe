@@ -1,9 +1,11 @@
 import os
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import fitz
-from ai.src.utils import load_config
+from utils import load_config
 
 # Question number (global across all rectangles and sheets)
 question_number = 1
