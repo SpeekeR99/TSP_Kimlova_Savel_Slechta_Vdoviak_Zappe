@@ -1,0 +1,9 @@
+fitz
+Flask
+imutils
+matplotlib
+numpy
+opencv-python
+pythreshold
+reportlab
+scikit-image
