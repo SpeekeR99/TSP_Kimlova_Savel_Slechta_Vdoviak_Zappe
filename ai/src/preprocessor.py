@@ -269,7 +269,4 @@ def preprocess_image(path_to_image, path_to_output):
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}
 
-    with open(path_to_output, "w", encoding="utf-8") as fp:
-        json.dump(output, fp, indent=4, ensure_ascii=False)
-
     return output
