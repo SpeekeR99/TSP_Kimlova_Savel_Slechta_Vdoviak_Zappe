@@ -277,6 +277,9 @@ def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, 
     y = config["student_id_rect"]["y"]
     draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
 
+    # Draw auxiliary rectangle to the top left corner for pdf rotation
+    ax.add_patch(patches.Rectangle((1.15, 0.94), 0.05, 0.05, facecolor="black"))
+
     # Draw the header
     draw_header(ax, config, x, 1 - y)
 
