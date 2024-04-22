@@ -4,7 +4,7 @@ from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
 
 
-def draw_labels(labels, student_id, filename):
+def draw_labels(student_id, student_questions, question_answers, filename):
     c = canvas.Canvas(filename, pagesize=letter)
 
     # set font
@@ -24,9 +24,16 @@ def draw_labels(labels, student_id, filename):
     y -= (label_height + y_spacing)
 
     # draw questions labels
-    for label in labels:
-        c.drawString(x, y, label)
+    for i in range(len(student_questions)):
+        question = student_questions[i]
+        answers = question_answers[i]
+
+        c.drawString(x, y, question)
         y -= (label_height + y_spacing)
+
+        for answer in answers:
+            c.drawString(x, y, answer)
+            y -= (label_height + y_spacing)
 
         # if questions does not fit one page
         if y - (label_height + y_spacing) < 0:
@@ -37,6 +44,6 @@ def draw_labels(labels, student_id, filename):
     c.save()
 
 
-def generate_question_paper(student_questions, student_id):
+def generate_question_paper(student_id, student_questions, question_answers):
     file_path = '../generated_pdfs/' + str(student_id) + '_question_paper.pdf'
-    draw_labels(student_questions, student_id, file_path)
+    draw_labels(student_id, student_questions, question_answers, file_path)
