@@ -1,7 +1,7 @@
 {
   "colors": {
     "main_color": "black",
-    "off_color": "lightgray",
+    "off_color": "white",
     "text_color": "gray"
   },
   "header": {

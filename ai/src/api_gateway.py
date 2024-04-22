@@ -1,6 +1,9 @@
-from flask import Flask, request, jsonify
+import os
+import zipfile
+from flask import Flask, request, jsonify, send_file
 
 from ai.src.generator_handler import generate_sheets
+from ai.src.preprocessor import preprocess_image
 
 app = Flask(__name__)
 
@@ -9,30 +12,37 @@ app = Flask(__name__)
 def get_data():
     file_data = request.get_json()
     generate_sheets(file_data)
-    return jsonify({'message': 'JSON file processed successfully'})
+
+    try:
+        pdf_files =["../generated_pdfs/bubble_sheets.pdf", "../generated_pdfs/question_papers.pdf"]
+        zip_file = "../generated_pdfs/pdfs.zip"
+
+        # Create a zip file containing the PDF files
+        with zipfile.ZipFile(zip_file, 'w') as zipf:
+            for pdf_file in pdf_files:
+                zipf.write(pdf_file, arcname=os.path.basename(pdf_file))
+
+        return send_file(zip_file, as_attachment=True)
+
+    except Exception as e:
+        return jsonify({'error': f'An error occurred: {e}'})
 
 
 @app.route('/test_evaluation', methods=['POST'])
 def evaluate_answers():
-    if 'file' not in request.files:
+    if not request.data:
         return jsonify({'error': 'No file part'})
 
-    file = request.files['file']
+    file_data = request.data
 
-    if file.filename == '':
-        return jsonify({'error': 'No selected file'})
+    with open('temp.pdf', 'wb') as fp:
+        fp.write(file_data)
 
-    if file and file.filename.endswith('.pdf'):
-        file.save('naskenovane.pdf')
+    # Extract text from the PDF
+    json_data = preprocess_image("temp.pdf", "output.json")
+    os.remove("temp.pdf")
 
-        # Extract text from the PDF
-
-        # Convert text to JSON
-        json_data = {'text': 'answers'}
-
-        return jsonify(json_data)
-    else:
-        return jsonify({'error': 'Invalid file format. Please upload a PDF file'})
+    return jsonify(json_data)
 
 
 if __name__ == '__main__':

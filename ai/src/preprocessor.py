@@ -107,7 +107,7 @@ def preprocess_image(path_to_image, path_to_output):
     Preprocess the image and detect filled bubbles
     :param path_to_image: Path to the image
     :param path_to_output: Path to the output json file
-    :return: List of detected answers
+    :return: JSON output with student ID and answers
     """
 
     # Load the configuration file
@@ -271,3 +271,5 @@ def preprocess_image(path_to_image, path_to_output):
 
     with open(path_to_output, "w", encoding="utf-8") as fp:
         json.dump(output, fp, indent=4, ensure_ascii=False)
+
+    return output
