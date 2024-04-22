@@ -1,5 +1,4 @@
 import fitz
-import matplotlib.pyplot as plt
 import numpy as np
 import cv2
 
@@ -7,8 +6,9 @@ import cv2
 def load_pdf(file_path):
     """
     Load pdf file and return list of images
+    If nessesary, rotate images
     :param file_path: Path to pdf file
-    :return: List of images
+    :return: List of (rotated) images
     """
     pdf = fitz.open(file_path)
     images = []
@@ -39,13 +39,3 @@ def load_pdf(file_path):
 
         images.append(image)
     return images
-
-
-imgs = load_pdf("../generated_pdfs/rotat_tester.pdf")
-fig, ax = plt.subplots(2, 4, figsize=(20, 10))
-for i in range(len(imgs)):
-    ax[i//4, i % 4].imshow(imgs[i])
-    ax[i//4, i % 4].axis("off")
-
-plt.subplots_adjust(wspace=0, hspace=0)
-plt.show()
