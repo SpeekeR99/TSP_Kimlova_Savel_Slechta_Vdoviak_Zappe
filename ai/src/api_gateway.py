@@ -14,8 +14,8 @@ def get_data():
     generate_sheets(file_data)
 
     try:
-        pdf_files =["../generated_pdfs/bubble_sheets.pdf", "../generated_pdfs/question_papers.pdf"]
-        zip_file = "../generated_pdfs/pdfs.zip"
+        pdf_files =["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
+        zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")
 
         # Create a zip file containing the PDF files
         with zipfile.ZipFile(zip_file, 'w') as zipf:
@@ -39,7 +39,7 @@ def evaluate_answers():
         fp.write(file_data)
 
     # Extract text from the PDF
-    json_data = preprocess_image("temp.pdf", "output.json")
+    json_data = preprocess_image("temp.pdf")
     os.remove("temp.pdf")
 
     return jsonify(json_data)

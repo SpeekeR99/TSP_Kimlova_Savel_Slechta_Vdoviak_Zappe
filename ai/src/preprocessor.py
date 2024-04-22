@@ -102,11 +102,10 @@ def find_edges(image):
     return edges
 
 
-def preprocess_image(path_to_image, path_to_output):
+def preprocess_image(path_to_image):
     """
     Preprocess the image and detect filled bubbles
     :param path_to_image: Path to the image
-    :param path_to_output: Path to the output json file
     :return: JSON output with student ID and answers
     """
 
@@ -263,8 +262,8 @@ def preprocess_image(path_to_image, path_to_output):
                         answers[i][q].append(0)
 
             # Show the images (just for showcase purposes)
-            show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
-                        [subimage, threshed_subimage, circle_image])
+            # show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
+            #             [subimage, threshed_subimage, circle_image])
 
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}

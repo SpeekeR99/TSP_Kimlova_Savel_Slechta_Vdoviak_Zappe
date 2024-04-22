@@ -61,5 +61,5 @@ def draw_labels(student_id, student_questions, question_answers, filename):
 
 
 def generate_question_paper(student_id, student_questions, question_answers):
-    file_path = '../generated_pdfs/' + str(student_id) + '_question_paper.pdf'
+    file_path = 'generated_pdfs/' + str(student_id) + '_question_paper.pdf'
     draw_labels(student_id, student_questions, question_answers, file_path)

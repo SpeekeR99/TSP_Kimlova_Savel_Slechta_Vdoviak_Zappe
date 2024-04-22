@@ -78,8 +78,8 @@ def generate_sheets(json_data):
             answers_text.append([answer["text"] for answer in question.answers])
         generate_question_paper(student.id, questions_text, answers_text)
 
-    pdfs_q = [f"../generated_pdfs/{student.id}_question_paper.pdf" for student in students]
-    pdfs_a = [f"../generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]
+    pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
+    pdfs_a = [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]
 
     merged_pdf_q = fitz.open()
     merged_pdf_a = fitz.open()
@@ -89,8 +89,8 @@ def generate_sheets(json_data):
     for pdf_a in pdfs_a:
         merged_pdf_a.insert_pdf(fitz.open(pdf_a))
 
-    merged_pdf_q.save("../generated_pdfs/question_papers.pdf")
-    merged_pdf_a.save("../generated_pdfs/bubble_sheets.pdf")
+    merged_pdf_q.save("generated_pdfs/question_papers.pdf")
+    merged_pdf_a.save("generated_pdfs/bubble_sheets.pdf")
 
     for pdf in pdfs_q + pdfs_a:
         os.remove(pdf)
