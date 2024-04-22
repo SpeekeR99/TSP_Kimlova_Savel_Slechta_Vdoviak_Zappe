@@ -1,29 +1,31 @@
 import { useMutation } from 'react-query'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
-import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
-const fetchData = async (quizId) => {
-	if (!quizId) return
-	await new Promise((resolve) => setTimeout(resolve, 2000))
+const fetchData = async (file: File) => {
+	if (!file) return
+	const formData = new FormData()
+	formData.append('file', file)
+
 	try {
-		const response = await fetch('/0/generate/', {
+		const response = await fetch('/0/process/arks', {
 			method: 'POST',
-			body: JSON.stringify(quizId),
+			body: formData,
 		})
 
 		if (response.ok) {
 			const data = await response.json()
 			console.log('Response:', data)
 		} else {
-			console.error('Upload failed:', response.statusText)
+			throw new Error(`Upload failed: ${response.statusText}`)
 		}
 	} catch (error) {
-		console.error('Error:', error)
+		throw new Error(`Error: ${error}`)
 	}
 }
 
-export const useGenerateActions = () => {
+export const useUploadArks = () => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>
