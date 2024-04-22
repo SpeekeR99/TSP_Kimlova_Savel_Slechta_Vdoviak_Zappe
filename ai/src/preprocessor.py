@@ -6,8 +6,8 @@ import matplotlib.pyplot as plt
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
-from ai.src.utils import load_config
-from ai.src.pdf_rotator import load_pdf
+from utils import load_config
+from pdf_rotator import load_pdf
 
 
 def show_images(titles, images):
@@ -102,12 +102,11 @@ def find_edges(image):
     return edges
 
 
-def preprocess_image(path_to_image, path_to_output):
+def preprocess_image(path_to_image):
     """
     Preprocess the image and detect filled bubbles
     :param path_to_image: Path to the image
-    :param path_to_output: Path to the output json file
-    :return: List of detected answers
+    :return: JSON output with student ID and answers
     """
 
     # Load the configuration file
@@ -263,11 +262,10 @@ def preprocess_image(path_to_image, path_to_output):
                         answers[i][q].append(0)
 
             # Show the images (just for showcase purposes)
-            show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
-                        [subimage, threshed_subimage, circle_image])
+            # show_images([f'subimage{i + 1}', f'threshed_subimage{i + 1}', f'circle_image{i + 1}'],
+            #             [subimage, threshed_subimage, circle_image])
 
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}
 
-    with open(path_to_output, "w", encoding="utf-8") as fp:
-        json.dump(output, fp, indent=4, ensure_ascii=False)
+    return output

@@ -1,9 +1,11 @@
 import os
 import numpy as np
+import matplotlib
+matplotlib.use("Agg")
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import fitz
-from ai.src.utils import load_config
+from utils import load_config
 
 # Question number (global across all rectangles and sheets)
 question_number = 1
@@ -354,7 +356,7 @@ def generate_bubble_sheet(student_id):
         # Turn off the axis but keep the frame
         ax.axis("off")
         # Save the figure as a PDF file
-        file_name = f"../generated_pdfs/{student_id}_bubble_sheet_page_{page + 1}.pdf"
+        file_name = f"generated_pdfs/{student_id}_bubble_sheet_page_{page + 1}.pdf"
         sub_pdfs.append(file_name)
         plt.savefig(file_name, format='pdf', bbox_inches='tight', pad_inches=0)
 
@@ -369,7 +371,7 @@ def generate_bubble_sheet(student_id):
             merged_pdf.insert_pdf(pdf_file)
 
     # Save the final PDF
-    final_pdf = f"../generated_pdfs/{student_id}_bubble_sheet.pdf"
+    final_pdf = f"generated_pdfs/{student_id}_bubble_sheet.pdf"
     merged_pdf.save(final_pdf)
     merged_pdf.close()
 
