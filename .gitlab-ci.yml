@@ -1,12 +1,11 @@
 variables:
   IMAGE_NODE: node:18.18-alpine
   IMAGE_DOCKER: docker:20.10
+  IMAGE_ANSIBLE: "cytopia/ansible:2.12"
   DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
-  # dind specific for kiv runner
-  DOCKER_HOST: tcp://docker:2375
-  DOCKER_TLS_CERTDIR: ""
-  DOCKER_DRIVER: overlay2
+  ANSIBLE_DIR: "ansible"
+
 
 workflow:
   rules:
@@ -27,33 +26,37 @@ workflow:
 default:
   image: alpine:3.17
   tags:
-  - kiv
+    - kiv
 
 stages:
   - test
   - build
   - deploy
 
-# TODO: uncommment - skip for now, testing dind serivce
-# test-unit-web:
-#   stage: test
-#   image: $IMAGE_NODE
-#   script:
-#     - cd $WEB_DIR
-#     - npm install
-#     - npm run test
-
-build-docker-image:
-  stage: build
-  image: $IMAGE_DOCKER
-  services:
-    - $DOCKER_IN_DOCKER_SERVICE
+test-unit-web:
+  stage: test
+  image: $IMAGE_NODE
   script:
-    - ./scripts/build-publish-docker.sh $PACKAGE_NAME
+    - cd $WEB_DIR
+    - npm install
+    - npm run test
+
+# TODO (slechtaj): enable when kiv runners are fixed
+# building in separate project for now, because kiv runners suck (https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986)
+
+# build-docker-image:
+#   stage: build
+#   image: $IMAGE_DOCKER
+#   services:
+#     - $DOCKER_IN_DOCKER_SERVICE
+#   script:
+#     - ./scripts/build-publish-docker.sh $PACKAGE_NAME
 
 deploy-nodejsapp:
   stage: deploy
+  image: $IMAGE_ANSIBLE
   before_script:
+    - echo "Deploying to ${ENVIRONMENT}"
     - which ssh-agent || ( apk --update add openssh-client )
     - eval $(ssh-agent -s)
     - chmod 0400 $SSH_PRIVATE_KEY
@@ -64,9 +67,9 @@ deploy-nodejsapp:
     - chmod 0644 ~/.ssh/known_hosts
     - apk --no-cache add tar unzip
   script:
-    - echo "Deploying to ${ENVIRONMENT}"
-    - echo "App running at $NODEJSAPP_URL"
+    - cd $ANSIBLE_DIR
     - "ansible-playbook -i inventories/${ENVIRONMENT:-development}/hosts webservers.yml"
+    - echo "App running at $NODEJSAPP_URL"
   environment:
     name: ${ENVIRONMENT}
     url: $NODEJSAPP_URL
