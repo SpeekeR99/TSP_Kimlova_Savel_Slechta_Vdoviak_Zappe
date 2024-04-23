@@ -42,8 +42,7 @@ build-docker-image:
   stage: build
   image: $IMAGE_DOCKER
   services:
-    - name: $DOCKER_IN_DOCKER_SERVICE
-      alias: docker
+    - $DOCKER_IN_DOCKER_SERVICE
   script:
     - ./scripts/build-publish-docker.sh $PACKAGE_NAME
 
