@@ -1,23 +1,33 @@
 variables:
   IMAGE_NODE: node:18.18-alpine
-  IMAGE_PUBLISH: "curlimages/curl:7.86.0"
-  PACKAGE_NAME: "web-dist"
+  IMAGE_DOCKER: docker:20.10
+  DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
-  WEB_BUILD_DIR: $WEB_DIR/dist
-  WEB_ARCHIVE_NAME: "web-template"
-  WEB_ARCHIVE_DIR: "packaged"
+
+workflow:
+  rules:
+    # main branch = production
+    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
+      variables:
+        PACKAGE_NAME: "web-dist"
+        ENVIRONMENT: production
+        NODEJSAPP_URL: http://147.228.173.196
+
+    # any other branch = development
+    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
+      variables:
+        PACKAGE_NAME: "web-dist-dev"
+        ENVIRONMENT: development
+        NODEJSAPP_URL: http://147.228.173.197
 
 default:
   image: alpine:3.17
   tags:
   - kiv
 
-
 stages:
   - test
   - build
-  - template
-  - publish
   - deploy
 
 test-unit-web:
@@ -28,49 +38,31 @@ test-unit-web:
     - npm install
     - npm run test
 
-build-web:
+build-docker-image:
   stage: build
-  image: $IMAGE_NODE
+  image: $IMAGE_DOCKER
+  services:
+    - $DOCKER_IN_DOCKER_SERVICE
   script:
-    - cd $WEB_DIR
-    - npm install
-    - npm run build
-  artifacts:
-    paths:
-      - $WEB_BUILD_DIR
-    expire_in: 1 day
+    - ./scripts/build-publish-docker.sh $PACKAGE_NAME
 
-package-templates-zip:
-  stage: template
-  variables:
-      ARCHIVE_PATH: $WEB_ARCHIVE_DIR/$WEB_ARCHIVE_NAME.zip
-  before_script:
-    - "apk add zip"
-  script:
-    - "mkdir -p $WEB_ARCHIVE_DIR"
-    - "zip -r $ARCHIVE_PATH $WEB_BUILD_DIR"
-  artifacts:
-    paths:
-      - $ARCHIVE_PATH
-    expire_in: 1 day
-  dependencies:
-    - build-web
-
-publish-templates:
-  stage: publish
-  image: $IMAGE_PUBLISH
-  script:
-    - ./scripts/publish-build.sh $WEB_ARCHIVE_DIR $PACKAGE_NAME
-  dependencies:
-    - package-templates-zip
-  rules:
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-    - if: $CI_COMMIT_TAG
-    - when: manual
-
-deploy-production:
+deploy-nodejsapp:
   stage: deploy
+  before_script:
+    - which ssh-agent || ( apk --update add openssh-client )
+    - eval $(ssh-agent -s)
+    - chmod 0400 $SSH_PRIVATE_KEY
+    - ssh-add $SSH_PRIVATE_KEY
+    - mkdir -p ~/.ssh
+    - chmod 0700 ~/.ssh
+    - cp $SSH_SERVER_HOSTKEYS ~/.ssh/known_hosts
+    - chmod 0644 ~/.ssh/known_hosts
+    - apk --no-cache add tar unzip
   script:
-    - echo "We do not have any environment to deploy to, yet, silly! Doing nothing..."
+    - echo "Deploying to ${ENVIRONMENT}"
+    - echo "App running at $NODEJSAPP_URL"
+    - "ansible-playbook -i inventories/${ENVIRONMENT:-development}/hosts webservers.yml"
+  environment:
+    name: ${ENVIRONMENT}
+    url: $NODEJSAPP_URL
   when: manual
-  environment: production
