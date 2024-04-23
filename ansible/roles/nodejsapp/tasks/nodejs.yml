@@ -1,0 +1,32 @@
+- name: Install acl package
+  become: true
+  package:
+    name: acl
+    state: present
+
+- name: Install NVM
+  become: true
+  become_user: "{{ user_name }}"
+  shell: >
+    curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.39.1/install.sh | bash
+  args:
+    creates: "/home/{{ user_name }}/.nvm/nvm.sh"
+    chdir: "/home/{{ user_name }}"
+
+- name: Check if node_modules directory exists
+  stat:
+    path: "{{ nodejsapp_base_dir }}/node_modules"
+  register: node_modules_check
+
+- name: Install dependencies based on package.json using node version specified in .nvmrc file
+  become: true
+  become_user: "{{ user_name }}"
+  shell: |
+    source /home/{{ user_name }}/.nvm/nvm.sh
+    nvm install && nvm use
+    npm install
+  args:
+    executable: /bin/bash
+    chdir: "{{ nodejsapp_base_dir }}"
+  when: (node_modules_check.stat.exists == false) or
+    (original_packagejson_state.stat.checksum != updated_packagejson_state.stat.checksum)
