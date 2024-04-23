@@ -1,7 +1,7 @@
 user_name: nodejsapp
 user_group: nodejsapp
 
-gitlab_app_package_name: "{{ lookup('env', 'PACKAGE_NAME') | default('web-dist-dev') }}"
+gitlab_app_package_name: "{{ lookup('env', 'PACKAGE_NAME') | default('web-dist-dev', True) }}"
 
 nodejsapp_user: "{{ user_name }}"
 nodejsapp_group: "{{ user_group }}"
