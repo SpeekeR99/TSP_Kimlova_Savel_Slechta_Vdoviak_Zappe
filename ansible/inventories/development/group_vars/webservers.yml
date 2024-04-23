@@ -4,7 +4,7 @@ user_name: nodejsapp
 user_group: nodejsapp
 
 gitlab_project_id: "514"
-gitlab_template_package_name: "web-dist"
+gitlab_template_package_name: "web-dist-dev"
 gitlab_template_package_version: "rolling"
 gitlab_template_file_name: "web-template.tar.gz"
 

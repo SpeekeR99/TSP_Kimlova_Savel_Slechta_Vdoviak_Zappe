@@ -1,0 +1,13 @@
+---
+# defaults file for nodejs app
+
+# Directory for systemd service files - might be different on some systems
+systemd_dir: "/etc/systemd/system/"
+
+# Utility directories
+tmp_dir: "/tmp/downloads"
+log_dir: "/var/log"
+
+# Nodejs app working directory and service name
+nodejsapp_base_dir: "/opt/nodejsapp"
+web_service_name: "nodejsapp"

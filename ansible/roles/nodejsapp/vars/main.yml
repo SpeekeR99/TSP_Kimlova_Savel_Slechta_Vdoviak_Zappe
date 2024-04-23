@@ -1,0 +1,7 @@
+---
+# vars file for Nodejs app
+
+nodejsapp_log_dir: "{{ log_dir }}/{{ web_service_name }}"
+
+nodejsapp_script_dest: "{{ nodejsapp_base_dir }}/{{ web_service_name }}.sh"
+nodejsapp_pid_file_dest: "{{ nodejsapp_base_dir }}/{{ web_service_name }}.pid"

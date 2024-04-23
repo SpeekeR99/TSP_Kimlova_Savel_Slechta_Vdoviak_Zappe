@@ -1,0 +1,58 @@
+---
+- name: Create base dir for nodejsap
+  become: true
+  ansible.builtin.file:
+    path: "{{ nodejsapp_base_dir }}"
+    mode: "0775"
+    owner: "{{ nodejsapp_user }}"
+    group: "{{ nodejsapp_group }}"
+    state: "directory"
+  notify: Restart Web Service
+
+- name: Ensure log directory exists on target node
+  become: true
+  ansible.builtin.file:
+    path: "{{ nodejsapp_log_dir }}"
+    mode: "0775"
+    owner: "{{ nodejsapp_user }}"
+    group: "{{ nodejsapp_group }}"
+    state: "directory"    
+  notify: Restart Web Service
+
+- name: Get current package.json state
+  stat:
+    path: "{{ nodejsapp_base_dir }}/package.json"
+  register: original_packagejson_state
+
+- name: Print template download URL
+  ansible.builtin.debug:
+    msg: "{{ template_download_url }}"
+
+- name: Upload templates (and unpack)
+  become: true
+  ansible.builtin.unarchive:
+    src: "{{ template_download_url }}"
+    dest: "{{ nodejsapp_base_dir }}"
+    remote_src: yes
+    include:
+      - "{{ web_template_dir }}/*"
+    extra_opts:
+      - "--wildcards"
+      - "--strip-components=1"
+    mode: "0775"
+    owner: "{{ nodejsapp_user }}"
+    group: "{{ nodejsapp_group }}"
+  notify: Restart Web Service
+
+- name: Get updated package.json state
+  stat:
+    path: "{{ nodejsapp_base_dir }}/package.json"
+  register: updated_packagejson_state
+
+- name: Configure nodejs environment
+  ansible.builtin.import_tasks:
+    file: "nodejs.yml"
+
+- name: Configure systemd service
+  ansible.builtin.import_tasks:
+    file: "service.yml"

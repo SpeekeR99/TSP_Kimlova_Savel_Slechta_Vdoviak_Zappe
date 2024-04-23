@@ -1,0 +1,5 @@
+[webservers]
+147.228.173.210 ansible_user=nodeadm
+
+[loadbalancers]
+147.228.173.117 ansible_user=nodeadm

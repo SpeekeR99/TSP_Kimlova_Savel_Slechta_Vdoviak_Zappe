@@ -1,0 +1,14 @@
+galaxy_info:
+  role_name: nodejsapp
+  author: Jakub Slechta
+  description: Role for nodejs app service deployment
+  company: KIV ZCU
+
+  license: MIT
+
+  min_ansible_version: "2.1"
+  
+  galaxy_tags: []
+
+
+dependencies: []

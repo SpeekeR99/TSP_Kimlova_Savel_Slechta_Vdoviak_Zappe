@@ -1,0 +1,10 @@
+---
+
+gitlab_url: "https://gitlab.kiv.zcu.cz/api/v4/projects"
+
+gitlab_auth_header: "PRIVATE-TOKEN"
+gitlab_auth_token: "{{ vault_gitlab_auth_token }}"
+
+gitlab_auth_headers:
+  - key: "{{ gitlab_auth_header }}"
+    value: "{{ gitlab_auth_token }}"

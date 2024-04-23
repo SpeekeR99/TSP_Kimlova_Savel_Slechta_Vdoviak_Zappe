@@ -1,2 +1,5 @@
+[loadbalancers]
+147.228.173.197 ansible_user=nodeadm
+
 [webservers]
 147.228.173.196 ansible_user=nodeadm ansible_ssh_private_key_file=~/.ssh/pk_nuada.pem

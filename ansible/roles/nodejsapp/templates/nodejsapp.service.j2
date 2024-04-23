@@ -1,0 +1,12 @@
+[Unit]
+SourcePath={{ nodejsapp_script_dest }}
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Type=forking
+ExecStart={{ nodejsapp_script_dest }} start
+ExecStop={{ nodejsapp_script_dest }} stop
+
+[Install]
+WantedBy=multi-user.target

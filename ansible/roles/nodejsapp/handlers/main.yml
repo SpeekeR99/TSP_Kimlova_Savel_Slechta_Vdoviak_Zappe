@@ -1,0 +1,9 @@
+---
+# handlers file for nodejs app
+
+- name: Restart Web Service
+  become: true
+  ansible.builtin.service:
+    name: "{{ web_service_name }}"
+    daemon_reload: true
+    state: restarted    
