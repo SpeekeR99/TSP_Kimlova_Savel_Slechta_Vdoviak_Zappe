@@ -1,6 +1,6 @@
 ---
 # defaults file for users
 
-user_create_home: false
-user_shell: /sbin/nologin
+user_create_home: true
+user_shell: /bin/bash
 user_state: present

@@ -1,0 +1,8 @@
+# TODO (slechtaj): use when kiv runners are fixed
+# gitlab_docker_registry: "{{ lookup('env', 'CI_REGISTRY_IMAGE') }}"
+gitlab_docker_registry: "registry.gitlab.com/jamesari/aswi-testing"
+
+gitlab_image_name: "{{ gitlab_app_package_name }}"
+gitlab_image_tag: "latest"
+
+gitlab_image_url: "{{ gitlab_docker_registry }}/{{ gitlab_image_name }}:{{ gitlab_image_tag }}"
