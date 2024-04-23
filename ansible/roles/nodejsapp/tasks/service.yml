@@ -1,0 +1,27 @@
+---
+- name: Configure init script
+  become: true
+  ansible.builtin.template:
+    src: templates/nodejsapp.sh.j2
+    dest: "{{ nodejsapp_script_dest }}"
+    owner: "{{ nodejsapp_user }}"
+    group: "{{ nodejsapp_group }}"
+    mode: 0554
+  notify: Restart Web Service
+
+- name: Configure systemd unit
+  become: true
+  ansible.builtin.template:
+    src: templates/nodejsapp.service.j2
+    dest: "{{ systemd_dir }}/{{ web_service_name }}.service"
+    owner: "{{ nodejsapp_user }}"
+    group: "{{ nodejsapp_group }}"
+    mode: 0554
+  notify: Restart Web Service
+
+- name: Ensure Web service is started
+  become: true
+  ansible.builtin.service:
+    name: "{{ web_service_name }}"
+    daemon_reload: true
+    state: started    
