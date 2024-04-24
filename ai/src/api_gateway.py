@@ -7,6 +7,10 @@ from preprocessor import preprocess_image
 
 app = Flask(__name__)
 
+@app.route('/healthcheck', methods=['GET'])
+def healthcheck():
+	return jsonify({'status': 'OK'})
+
 
 @app.route('/get_print_data', methods=['POST'])
 def get_data():
@@ -46,4 +50,7 @@ def evaluate_answers():
 
 
 if __name__ == '__main__':
-    app.run(debug=True)
+	if os.environ.get('ENV') == 'production':
+		app.run(host='0.0.0.0', port=8080)
+	else:
+		app.run(debug=True)
