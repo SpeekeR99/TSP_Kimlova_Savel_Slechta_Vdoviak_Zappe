@@ -1,6 +1,3 @@
-:: Create generated_pdfs directory if it doesn't exist
-if not exist generated_pdfs mkdir generated_pdfs
-
 :: Create a virtual environment
 python -m venv venv
 
