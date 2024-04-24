@@ -11,7 +11,7 @@ app = Flask(__name__)
 @app.route('/get_print_data', methods=['POST'])
 def get_data():
     file_data = request.get_json()
-    generate_sheets(file_data)
+    generate_sheets(file_data['data'])
 
     try:
         pdf_files =["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]

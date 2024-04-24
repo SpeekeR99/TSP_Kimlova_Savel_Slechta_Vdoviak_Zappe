@@ -3,7 +3,7 @@ import { Router } from 'express'
 import multer, { MulterFile } from 'multer'
 import catchError from '../middleware/catch-error'
 import { Route } from '../interface'
-import { parseXMLFile } from '../service/generateService'
+import { generateArks, parseXMLFile } from '../service/generateService'
 
 const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -24,8 +24,14 @@ router.post(
 		if (!file) throw new Error('XML file not present!')
 
 		const parsedXML = await parseXMLFile(file)
-		console.dir(parsedXML, { depth: null })
-		res.json({ status: 'ok' })
+		const response = await generateArks(parsedXML)
+
+		if (!response.ok) throw new Error('Failed to fetch file content')
+
+		const arrayBuffer = await response.arrayBuffer()
+		const buffer = Buffer.from(arrayBuffer)
+
+		res.send(buffer)
 	})
 )
 
