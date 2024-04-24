@@ -3,7 +3,7 @@ Flask
 imutils
 matplotlib
 numpy
-opencv-python
+opencv-python-headless
 pythreshold
 reportlab
 scikit-image
