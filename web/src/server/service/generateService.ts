@@ -66,3 +66,13 @@ export const parseXMLFile = (file: MulterFile): Promise<ParsedQuestions[]> => {
 		})
 	})
 }
+
+export const generateArks = async (parsedXML: ParsedQuestions[]) => {
+	return await fetch('http://127.0.0.1:5000/get_print_data', {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify({ data: parsedXML }),
+	})
+}

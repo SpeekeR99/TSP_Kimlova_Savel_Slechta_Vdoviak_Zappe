@@ -16,13 +16,17 @@ interface MyDropzoneProps {
 }
 
 const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
-	const { mutate, isLoading } = useAction()
+	const { mutate, isLoading, isSuccess } = useAction()
 	const [file, setFile] = useState<File | null>(null)
 	const { setOpenBackDrop } = useBackDropContext()
 
 	useEffect(() => {
 		setOpenBackDrop(isLoading)
 	}, [isLoading])
+
+	useEffect(() => {
+		if (isSuccess) setFile(null)
+	}, [isSuccess])
 
 	const onDrop = useCallback((acceptedFiles: File[]) => {
 		if (acceptedFiles.length > 0) setFile(acceptedFiles[0])
