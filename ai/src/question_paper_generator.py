@@ -1,3 +1,4 @@
+import os
 from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
@@ -7,8 +8,9 @@ from reportlab.pdfgen import canvas
 def draw_labels(student_id, student_questions, question_answers, filename):
     c = canvas.Canvas(filename, pagesize=letter)
 
+    font_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../res/fonts/arial", "Arial.ttf")
     # set font
-    pdfmetrics.registerFont(TTFont("Arial", "arial.ttf"))
+    pdfmetrics.registerFont(TTFont("Arial", font_file))
     c.setFont("Arial", 12)  # Set the font and size
 
     # Define label dimensions and spacing

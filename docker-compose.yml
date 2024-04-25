@@ -1,0 +1,19 @@
+version: '3'
+
+services:
+  web_service:
+    build: ./web
+    networks:
+      - api_network
+    ports:
+      - "8080:8080"
+
+  ai_service:
+    build: ./ai
+    networks:
+      - api_network
+    ports:
+      - "8081:8081"
+
+networks:
+  api_network:

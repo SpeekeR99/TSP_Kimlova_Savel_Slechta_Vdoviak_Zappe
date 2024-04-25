@@ -1,8 +1,5 @@
 #!/bin/bash
 
-# Create generated_pdfs directory if it doesn't exist
-mkdir -p generated_pdfs
-
 # Create a virtual environment
 python3 -m venv venv
 

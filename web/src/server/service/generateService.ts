@@ -68,7 +68,9 @@ export const parseXMLFile = (file: MulterFile): Promise<ParsedQuestions[]> => {
 }
 
 export const generateArks = async (parsedXML: ParsedQuestions[]) => {
-	return await fetch('http://127.0.0.1:5000/get_print_data', {
+	const port = process.env.AI_API_PORT || 5000
+	const host = process.env.AI_API_HOST || '127.0.0.1'
+	return await fetch(`http://${host}:${port}/get_print_data`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
