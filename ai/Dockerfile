@@ -14,4 +14,4 @@ COPY . .
 
 EXPOSE 8081
 
-CMD ["python", "src/api_gateway.py"]
+CMD ["python", "src/api/api_gateway.py"]

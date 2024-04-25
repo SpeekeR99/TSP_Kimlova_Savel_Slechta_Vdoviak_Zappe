@@ -8,4 +8,4 @@ call venv/Scripts/activate
 pip install -r requirements.txt
 
 :: Run the app (API)
-python src/api_gateway.py
+python src/api/api_gateway.py
