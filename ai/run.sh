@@ -10,4 +10,4 @@ source venv/bin/activate
 pip3 install -r requirements.txt
 
 # Run the app (API)
-python3 src/api_gateway.py
+python3 src/api/api_gateway.py
