@@ -1,15 +1,20 @@
 import os
+import sys
 import zipfile
 from flask import Flask, request, jsonify, send_file
 
-from generator_handler import generate_sheets
-from preprocessor import preprocess_image
+sys.path.append(os.path.join(os.getcwd(), ".."))
+
+from ai.src.generator.generator_handler import generate_sheets
+from ai.src.evaluator.preprocessor import preprocess_image
+
 
 app = Flask(__name__)
 
+
 @app.route('/healthcheck', methods=['GET'])
 def healthcheck():
-	return jsonify({'status': 'OK'})
+    return jsonify({'status': 'OK'})
 
 
 @app.route('/get_print_data', methods=['POST'])
@@ -50,10 +55,10 @@ def evaluate_answers():
 
 
 if __name__ == '__main__':
-	if not os.path.exists("generated_pdfs"):
-		os.makedirs("generated_pdfs")
-    
-	if os.environ.get('ENV') == 'production':
-		app.run(host='0.0.0.0', port=8081)
-	else:
-		app.run(debug=True)
+    if not os.path.exists("generated_pdfs"):
+        os.makedirs("generated_pdfs")
+
+    if os.environ.get('ENV') == 'production':
+        app.run(host='0.0.0.0', port=8081)
+    else:
+        app.run(debug=True)

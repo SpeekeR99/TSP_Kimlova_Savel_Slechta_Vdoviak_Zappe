@@ -2,9 +2,9 @@ import os
 import fitz
 import random
 
-from bubble_sheet_generator import generate_bubble_sheet
-from question_paper_generator import generate_question_paper
-from utils import load_config
+from ai.src.generator.bubble_sheet_generator import generate_bubble_sheet
+from ai.src.generator.question_paper_generator import generate_question_paper
+from ai.src.utils import load_config
 
 
 class Student:

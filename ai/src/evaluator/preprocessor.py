@@ -1,13 +1,12 @@
-import json
-
 import numpy as np
 import cv2
 import matplotlib.pyplot as plt
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
-from utils import load_config
-from pdf_rotator import load_pdf
+
+from ai.src.utils import load_config
+from ai.src.evaluator.pdf_rotator import load_pdf
 
 
 def show_images(titles, images):
