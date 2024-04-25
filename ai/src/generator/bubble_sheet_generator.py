@@ -5,7 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import fitz
 
-from ai.src.utils import load_config
+from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
 
 
 # Use Agg backend for matplotlib
@@ -313,8 +313,7 @@ def generate_bubble_sheet(student_id):
     config = load_config()
 
     # A4 paper size in inches
-    cm = 1 / 2.54  # Centimeters in inches
-    A4 = (29.7 * cm, 21.0 * cm)
+    A4 = get_A4_size()
 
     # Offset between rectangles
     offset_between_rect = config["rect_settings"]["rect_space_between"]
@@ -326,24 +325,13 @@ def generate_bubble_sheet(student_id):
     last_rect_q = num_of_q % num_of_q_per_rect
 
     # Calculate the number of rectangles that can fit in the figure
-    num_of_rects_per_page = 0
-    aspect_ratio = A4[0] / A4[1]
-    width_so_far = config["student_id_rect"]["width"] + 2 * offset_between_rect  # Every page has student ID field
-
-    while width_so_far < aspect_ratio - config["answer_rect"]["width"] - 1.5 * offset_between_rect:
-        width_so_far += config["answer_rect"]["width"] + 1.5 * offset_between_rect
-        num_of_rects_per_page += 1
+    num_of_rects_per_page = get_max_num_of_rects_in_page(config, A4)
 
     # Calculate the number of pages needed
     num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
 
     # Calculate the number of rectangles in each page
-    num_of_rects_in_page = []
-    for page in range(num_of_pages):
-        if page == num_of_pages - 1 and last_rect_q != 0 and num_of_rect % num_of_rects_per_page != 0:
-            num_of_rects_in_page.append(num_of_rect % num_of_rects_per_page)
-        else:
-            num_of_rects_in_page.append(num_of_rects_per_page)
+    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page, last_rect_q)
 
     # Generate the bubble sheet for each page
     sub_pdfs = []
