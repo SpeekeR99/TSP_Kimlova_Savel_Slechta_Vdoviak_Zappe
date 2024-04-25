@@ -50,7 +50,10 @@ def evaluate_answers():
 
 
 if __name__ == '__main__':
+	if not os.path.exists("generated_pdfs"):
+		os.makedirs("generated_pdfs")
+    
 	if os.environ.get('ENV') == 'production':
-		app.run(host='0.0.0.0', port=8080)
+		app.run(host='0.0.0.0', port=8081)
 	else:
 		app.run(debug=True)
