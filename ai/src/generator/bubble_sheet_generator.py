@@ -331,7 +331,7 @@ def generate_bubble_sheet(student_id):
     num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
 
     # Calculate the number of rectangles in each page
-    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page, last_rect_q)
+    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page)
 
     # Generate the bubble sheet for each page
     sub_pdfs = []
