@@ -132,7 +132,7 @@ def preprocess_image(path_to_image):
     num_of_pages = len(scanned_filled_images)
 
     # Calculate the number of rectangles in each page
-    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page, last_rect_q)
+    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page)
 
 
     # Create subimages from the big boxes
@@ -174,7 +174,7 @@ def preprocess_image(path_to_image):
             answer_grid = []
         max_grid = num_rows * num_cols
         answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
-        if num_of_pages == indx + 1 and last_rect_q != 0: # last page
+        if num_of_pages == indx + 1 and last_rect_q != 0:  # last page
             answer_grid.append(last_rect_q * num_cols)
         else:
             answer_grid.append(num_rows * num_cols)

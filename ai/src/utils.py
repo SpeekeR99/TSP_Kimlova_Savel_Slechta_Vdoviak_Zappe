@@ -59,20 +59,19 @@ def get_max_num_of_rects_in_page(config, A4):
     return num_of_rects_per_page
 
 
-def get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page, last_rect_q):
+def get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page):
     """
     Calculate the number of rectangles in each page
     :param num_of_rect: Total number of rectangles
     :param num_of_pages: Total number of pages
     :param num_of_rects_per_page: Number of rectangles that can fit in a page
-    :param last_rect_q: Number of questions in the last rectangle
     :return: List of number of rectangles in each page
     """
     # Calculate the number of rectangles in each page
     num_of_rects_in_page = []
     for page in range(num_of_pages):
         # If it is the last page and the last rectangle has fewer questions than the rest
-        if page == num_of_pages - 1 and last_rect_q != 0 and num_of_rect % num_of_rects_per_page != 0:
+        if page == num_of_pages - 1 and num_of_rect % num_of_rects_per_page != 0:
             num_of_rects_in_page.append(num_of_rect % num_of_rects_per_page)
         # Otherwise, add the maximum number of rectangles that can fit in a page
         else:
