@@ -133,12 +133,38 @@ def preprocess_image(path_to_image):
 
     # Calculate the number of rectangles in each page
     num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page)
-
+    num_of_rects_in_page_copy = num_of_rects_in_page.copy()
 
     # Create subimages from the big boxes
     subimages = []
     answers = []
     how_many_circles = []
+
+    for indx, scanned_filled in enumerate(scanned_filled_images):
+        # Number of circles in each subimage
+        # Rows * Cols
+        student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"]["cols"]
+
+        if indx == 0:
+            answer_grid = [student_id_grid]
+        else:
+            answer_grid = []
+
+        # Pick k largest contours
+        k = num_of_rects_in_page_copy.pop(0) + 1  # +1 for student id
+
+        max_grid = num_rows * num_cols
+        answer_grid += [max_grid] * (k - 2)  # Previous bubble grids are always full
+
+        if num_of_pages == indx + 1 and last_rect_q != 0:  # Last page
+            answer_grid.append(last_rect_q * num_cols)
+        else:
+            answer_grid.append(num_rows * num_cols)
+
+        how_many_circles += answer_grid
+
+    num_of_rects_in_page_copy = num_of_rects_in_page.copy()
+    first_k = 0
     for indx, scanned_filled in enumerate(scanned_filled_images):
         subimages.append([])
         # Convert the image to grayscale and threshold it
@@ -148,11 +174,15 @@ def preprocess_image(path_to_image):
         # Find the big boxes around the answer bubbles
         contours = find_contours(threshed_filled)
         # Pick k largest contours
-        k = num_of_rects_in_page.pop(0) + 1  # +1 for student id
+        k = num_of_rects_in_page_copy.pop(0) + 1  # +1 for student id
+        if indx == 0:
+            first_k = k
+
         contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
         contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
 
-        for contour in contours:
+        # Iterate over the big boxes
+        for i, contour in enumerate(contours):
             x, y, w, h = cv2.boundingRect(contour)
 
             # Throw away 1% of the border of the image
@@ -162,24 +192,17 @@ def preprocess_image(path_to_image):
             w -= 2 * diff
             h -= 2 * diff
 
+            # Modify height based on the number of questions
+            if indx == 0 and i == 0:  # Student ID grid
+                pass
+            else:
+                max_circles = num_rows * num_cols
+                actual_circles = how_many_circles[indx * (first_k - 1) + i]
+                h = int(h * actual_circles / max_circles)
+
             subimage = scanned_filled[y:y + h, x:x + w]
             subimages[-1].append(subimage)
 
-        # Number of circles in each subimage
-        student_id_grid = config["student_id_rect"]["grid"]["rows"] * config["student_id_rect"]["grid"][
-            "cols"]  # rows * cols
-        if indx == 0:
-            answer_grid = [student_id_grid]
-        else:
-            answer_grid = []
-        max_grid = num_rows * num_cols
-        answer_grid += [max_grid] * (k - 2)  # previous bubble grids are always full
-        if num_of_pages == indx + 1 and last_rect_q != 0:  # last page
-            answer_grid.append(last_rect_q * num_cols)
-        else:
-            answer_grid.append(num_rows * num_cols)
-
-        how_many_circles += answer_grid
     # For each big box
     for page in range(num_of_pages):
         for s in range(len(subimages[page])):
