@@ -6,7 +6,7 @@ import { Typography } from '@mui/material'
 const About = () => (
 	<BaseLayout>
 		<DemoPaper square={false} sx = {{margin: '5%'}}>
-			<Typography variant="h3" paddingLeft={'3%'}>
+			<Typography variant="h3" paddingLeft={'3%'} paddingTop={'3%'}>
                 About
 			</Typography>
 			<Typography  padding={'3%'}>
