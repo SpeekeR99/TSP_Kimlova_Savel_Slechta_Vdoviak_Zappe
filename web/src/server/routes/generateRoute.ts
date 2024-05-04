@@ -49,7 +49,6 @@ router.post(
 		const buffer = Buffer.from(arrayBuffer)
 
 		res.send(buffer)
-		res.send()
 	})
 )
 
