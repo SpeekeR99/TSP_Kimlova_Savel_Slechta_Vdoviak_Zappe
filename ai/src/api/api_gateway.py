@@ -58,7 +58,7 @@ def get_data():
         students = data["students"]
         generate_sheets(collection, questions, students)
 
-        pdf_files =["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
+        pdf_files = ["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
         zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")
 
         # Create a zip file containing the PDF files
@@ -87,7 +87,7 @@ def evaluate_answers():
             fp.write(file_data)
 
         # Extract text from the PDF
-        json_data = preprocess_image("temp.pdf")
+        json_data = preprocess_image(collection, "temp.pdf")
         os.remove("temp.pdf")
 
         return jsonify(json_data)
