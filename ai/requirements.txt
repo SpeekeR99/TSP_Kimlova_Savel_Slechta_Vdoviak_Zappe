@@ -7,3 +7,4 @@ opencv-python-headless
 pythreshold
 reportlab
 scikit-image
+pymongo
