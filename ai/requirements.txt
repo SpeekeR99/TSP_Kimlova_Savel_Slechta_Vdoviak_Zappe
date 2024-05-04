@@ -8,3 +8,4 @@ pythreshold
 reportlab
 scikit-image
 pymongo
+qrcode
