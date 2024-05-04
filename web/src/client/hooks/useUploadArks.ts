@@ -3,10 +3,12 @@ import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 
-const fetchData = async (file: File) => {
-	if (!file) return
+const fetchData = async (files: File[]) => {
+	if (!files) throw new Error('Files are not selected!')
+	if (files.length !== 1) throw new Error('Upload needs 1 file!')
+
 	const formData = new FormData()
-	formData.append('file', file)
+	formData.append('file', files[0])
 
 	try {
 		const response = await fetch('/0/process/arks', {

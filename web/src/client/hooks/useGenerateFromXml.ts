@@ -3,10 +3,14 @@ import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
 
-const fetchData = async (file: File) => {
-	if (!file) return
+const fetchData = async (files: File[]) => {
+	if (!files) throw new Error('Files not selected')
+	if (files.length !== 2) throw new Error('Generation needs 2 files!')
 	const formData = new FormData()
-	formData.append('file', file)
+
+	files.forEach((file) => {
+		formData.append('files', file)
+	})
 
 	try {
 		const response = await fetch('/0/generate/from-xml', {

@@ -9,8 +9,8 @@ const GenerateFromXMLPage = () => {
 		<BaseLayout>
 			<MyBreadcrump parts={['generate', 'from-XML']} />
 			<MyDropzone
-				mimeType='application/xml'
-				extension='.xml'
+				accept={{ 'application/xml': ['.xml'], 'text/csv': ['.csv'] }}
+				maxFiles={2}
 				useAction={useGenerateFromXML}
 			/>
 		</BaseLayout>

@@ -1,14 +1,8 @@
 import xml2js from 'xml2js'
 import { MulterFile } from 'multer'
-
-interface ParsedQuestions {
-	type: string | null
-	id: string
-	text: string
-	answers: any[]
-	defaultGrade: number
-	penalty: number
-}
+import { Question, Quiz, Student } from '../interface'
+import csv from 'csv-parser'
+import { Readable } from 'stream'
 
 const getValueFromHTMLString = (htmlString: string): string => {
 	const startIndex = htmlString.indexOf('>') + 1
@@ -27,7 +21,7 @@ const getAnswers = (answers: any[]): object[] => {
 	})
 }
 
-export const parseXMLFile = (file: MulterFile): Promise<ParsedQuestions[]> => {
+export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 	return new Promise((resolve, reject) => {
 		const xmlData = file.buffer.toString()
 
@@ -67,7 +61,7 @@ export const parseXMLFile = (file: MulterFile): Promise<ParsedQuestions[]> => {
 	})
 }
 
-export const generateArks = async (parsedXML: ParsedQuestions[]) => {
+export const generateArks = async (quiz: Quiz): Promise<Response> => {
 	const port = process.env.AI_API_PORT || 5000
 	const host = process.env.AI_API_HOST || '127.0.0.1'
 	return await fetch(`http://${host}:${port}/get_print_data`, {
@@ -75,6 +69,30 @@ export const generateArks = async (parsedXML: ParsedQuestions[]) => {
 		headers: {
 			'Content-Type': 'application/json',
 		},
-		body: JSON.stringify({ data: parsedXML }),
+		body: JSON.stringify(quiz),
+	})
+}
+
+export const parseStudentCSVFile = async (
+	file: MulterFile
+): Promise<Student[]> => {
+	const csvData = file.buffer.toString('utf-8')
+
+	const results = []
+	return new Promise((resolve, reject) => {
+		const stream = Readable.from([csvData])
+
+		stream
+			.pipe(csv({ separator: ';' }))
+			.on('data', (data) => {
+				results.push(data)
+			})
+
+			.on('end', () => {
+				resolve(results)
+			})
+			.on('error', (error) => {
+				reject(error)
+			})
 	})
 }

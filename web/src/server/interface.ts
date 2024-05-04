@@ -1,4 +1,5 @@
 import { Router } from 'express'
+import { MulterFile } from 'multer'
 
 export interface Route {
 	path: string
@@ -10,4 +11,25 @@ export interface CustomError extends Error {
 	response?: {
 		data: any
 	}
+}
+
+export interface Question {
+	type: string | null
+	id: string
+	text: string
+	answers: object[]
+	defaultGrade: number
+	penalty: number
+}
+
+export interface Student {
+	jmeno: string
+	prijmeni: string
+	vizualni_id: string
+	os_cislo: string
+}
+
+export interface Quiz {
+	questions: Question[]
+	students: Student[]
 }
