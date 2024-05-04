@@ -2,6 +2,7 @@ import os
 import sys
 import zipfile
 from flask import Flask, request, jsonify, send_file
+from pymongo import MongoClient
 
 #  Add the parent directory to the path
 sys.path.append(os.path.join(os.getcwd(), ".."))
@@ -12,6 +13,11 @@ from ai.src.evaluator.preprocessor import preprocess_image
 
 #  Initialize the Flask app
 app = Flask(__name__)
+uri = "mongodb://localhost:27017"
+# Connect to MongoDB
+client = MongoClient(uri)
+db = client['adt']
+collection = db['quizes']
 
 
 def catch_errors(func):
