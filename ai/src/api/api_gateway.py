@@ -36,7 +36,6 @@ def catch_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
-            print(f'An error occurred: {e}')
             return jsonify({'error': f'An error occurred: {e}'}), 500
     return wrapper
 

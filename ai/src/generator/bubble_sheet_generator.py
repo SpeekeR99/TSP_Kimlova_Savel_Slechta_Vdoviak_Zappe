@@ -4,6 +4,7 @@ import matplotlib
 import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import fitz
+import qrcode
 
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
 
@@ -265,11 +266,12 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     draw_labels(ax, config, rect_x, rect_y, rect_type, last_rect_q=last_rect_q)
 
 
-def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q):
+def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q):
     """
     Draw a page of the bubble sheet
     :param ax: Axis to draw the page on
     :param config: Configuration dictionary
+    :param test_id: Test ID
     :param student_id: Student ID
     :param page: Current page number
     :param num_of_pages: Number of pages
@@ -282,8 +284,20 @@ def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, 
     y = config["student_id_rect"]["y"]
     draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
 
-    # Draw auxiliary rectangle to the top left corner for pdf rotation
-    ax.add_patch(patches.Rectangle((1.15, 0.94), 0.05, 0.05, facecolor="black"))
+    # Draw QR code to the top right corner serving as pdf rotation indicator also
+    qr = qrcode.QRCode(
+        version=1,
+        error_correction=qrcode.constants.ERROR_CORRECT_L,
+        box_size=10,
+        border=4,
+    )
+    qr.add_data(test_id)
+    qr.make(fit=True)
+    qr = qr.make_image(fill_color="black", back_color="white")
+    qr = qr.resize((100, 100))
+    ax_in_ax = ax.inset_axes([0.92, 0.9, 0.1, 0.1], transform=ax.transAxes)
+    ax_in_ax.imshow(qr)
+    ax_in_ax.axis('off')
 
     # Draw the header
     draw_header(ax, config, x, 1 - y)
@@ -307,6 +321,7 @@ def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, 
 def generate_bubble_sheet(test_id, student_id):
     """
     Main function to generate the bubble sheet
+    :param test_id: Test ID
     :param student_id: Student ID (number from 0 to 9999)
     """
     # Load the configuration file
@@ -342,7 +357,7 @@ def generate_bubble_sheet(test_id, student_id):
         # Set the aspect of the plot to be equal
         ax.set_aspect('equal', adjustable='datalim')
 
-        draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q)
+        draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q)
 
         # Turn off the axis but keep the frame
         ax.axis("off")
