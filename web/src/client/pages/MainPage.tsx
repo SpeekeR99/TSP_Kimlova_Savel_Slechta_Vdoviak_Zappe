@@ -8,8 +8,8 @@ const MainPage = () => (
 	<BaseLayout>
 		<MyBreadcrump parts={['upload', 'Arks']} />
 		<MyDropzone
-			mimeType='application/pdf'
-			extension='.pdf'
+			accept={{ 'application/pdf': ['.pdf'] }}
+			maxFiles={1}
 			useAction={useUploadArks}
 		/>
 	</BaseLayout>
