@@ -1,17 +1,27 @@
 import os
 import fitz
 import random
+import uuid
+import numpy as np
 
 from ai.src.generator.bubble_sheet_generator import generate_bubble_sheet
 from ai.src.generator.question_paper_generator import generate_question_paper
-from ai.src.utils import load_config
 
 
 class Student:
-    def __init__(self, id, name, student_number):
+    def __init__(self, id, name, surname, student_number):
         self.id = id
         self.name = name
+        self.surname = surname
         self.student_number = student_number
+
+    def to_dict(self):
+        return {
+            "id": self.id,
+            "name": self.name,
+            "surname": self.surname,
+            "student_number": self.student_number
+        }
 
 
 class Question:
@@ -23,26 +33,26 @@ class Question:
         self.default_grade = default_grade
         self.penalty = penalty
 
+    def to_dict(self):
+        return {
+            "question_id": self.question_id,
+            "type": self.type,
+            "text": self.text,
+            "answers": self.answers,
+            "default_grade": self.default_grade,
+            "penalty": self.penalty
+        }
 
-def prepare_mock_students():
-    students = [
-        Student(1, "Alice", "A20B0001P"),
-        Student(2, "Bob", "A21N0001P"),
-        Student(3, "Oskar", "A20B0002P"),
-        Student(4, "Mock Student", "A20B0003P"),
-    ]
 
-    return students
+def preprocess_data(students_json, questions_json):
+    student_id = 0
+    students = []
+    for student in students_json:
+        students.append(Student(student_id, student["jmeno"], student["prijmeni"], student["os_cislo"]))
+        student_id += 1
 
-
-def preprocess_data(json_data):
-    # students_data = json_data['students']
-    questions_data = json_data
-
-    # students = [Student(student['id'], student['name'], student['student_number']) for student in students_data]
-    students = prepare_mock_students()
     questions = []
-    for question in questions_data:
+    for question in questions_json:
         questions.append(Question(question["id"], question["type"], question["text"], question["answers"], question["defaultGrade"], question["penalty"]))
 
     return students, questions
@@ -57,26 +67,33 @@ def shuffled_questions(questions_list, test_length):
     return shuffled_list[:test_length]
 
 
-def generate_sheets(json_data):
-    # Load the configuration file
-    config = load_config()
+def generate_sheets(collection, questions_json, students_json):
+    students, questions = preprocess_data(students_json, questions_json)
+    test_id = uuid.uuid4().hex
+    test_length = len(questions)
 
-    students, questions = preprocess_data(json_data)
-
-    # number of questions in each test
-    test_length = config["number_of_questions"]
     for student in students:
-
         # generate bubble sheet with unique id for every student
-        generate_bubble_sheet(student.id)
+        generate_bubble_sheet(test_id, student.id)
 
         # generate question paper with unique set of questions
         student_questions = shuffled_questions(questions, test_length)
+
         questions_text = [question.text for question in student_questions]
         answers_text = []
         for question in student_questions:
             answers_text.append([answer["text"] for answer in question.answers])
+
         generate_question_paper(student.id, questions_text, answers_text)
+
+    collection.insert_one(
+        {
+            "test_id": test_id,
+            "num_of_questions": test_length,
+            "students": [student.to_dict() for student in students],
+            "questions": [question.to_dict() for question in questions]
+        }
+    )
 
     pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
     pdfs_a = [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]

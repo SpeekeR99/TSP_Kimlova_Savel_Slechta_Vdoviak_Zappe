@@ -36,6 +36,7 @@ def catch_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
+            print(f'An error occurred: {e}')
             return jsonify({'error': f'An error occurred: {e}'}), 500
     return wrapper
 
@@ -52,9 +53,11 @@ def get_data():
     :return: ZIP file containing the generated PDFs
     """
     def inner_func():
-        file_data = request.get_json()
-        # studenti -> file_data['students']
-        generate_sheets(file_data['questions'])
+        data = request.get_json()
+
+        questions = data["questions"]
+        students = data["students"]
+        generate_sheets(collection, questions, students)
 
         pdf_files =["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
         zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")

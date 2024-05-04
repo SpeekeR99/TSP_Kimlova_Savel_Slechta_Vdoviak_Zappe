@@ -304,7 +304,7 @@ def draw_page(ax, config, student_id, page, num_of_pages, num_of_rects_in_page, 
         x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
 
-def generate_bubble_sheet(student_id):
+def generate_bubble_sheet(test_id, student_id):
     """
     Main function to generate the bubble sheet
     :param student_id: Student ID (number from 0 to 9999)
