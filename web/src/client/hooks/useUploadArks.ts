@@ -16,7 +16,17 @@ const fetchData = async (file: File) => {
 
 		if (response.ok) {
 			const data = await response.json()
-			console.log('Response:', data)
+			const jsonData = JSON.stringify(data)
+
+			const blob = new Blob([jsonData], { type: 'application/json' })
+			const url = URL.createObjectURL(blob)
+
+			const link = document.createElement('a')
+			link.href = url
+			link.download = 'result.json'
+			document.body.appendChild(link)
+			link.click()
+			document.body.removeChild(link)
 		} else {
 			throw new Error(`Upload failed: ${response.statusText}`)
 		}
