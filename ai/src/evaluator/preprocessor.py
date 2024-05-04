@@ -101,9 +101,10 @@ def find_edges(image):
     return edges
 
 
-def preprocess_image(path_to_image):
+def preprocess_image(collection, path_to_image):
     """
     Preprocess the image and detect filled bubbles
+    :param collection: DB collection
     :param path_to_image: Path to the image
     :return: JSON output with student ID and answers
     """
@@ -116,6 +117,11 @@ def preprocess_image(path_to_image):
 
     scanned_filled_images = load_pdf(path_to_image)
 
+    # Find the QR code
+    first_page = scanned_filled_images[0]
+    qcd = cv2.QRCodeDetector()
+    test_id, _, _ = qcd.detectAndDecode(first_page)
+
     # A4 paper size in inches
     A4 = get_A4_size()
 
@@ -123,7 +129,7 @@ def preprocess_image(path_to_image):
     num_of_rects_per_page = get_max_num_of_rects_in_page(config, A4)
 
     # Number of questions
-    num_of_q = config["number_of_questions"]
+    num_of_q = collection.find_one({"test_id": test_id})["num_of_questions"]
     num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
     num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
     last_rect_q = num_of_q % num_of_q_per_rect
