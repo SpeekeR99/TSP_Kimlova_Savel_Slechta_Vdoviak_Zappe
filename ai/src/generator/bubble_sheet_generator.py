@@ -130,7 +130,7 @@ def draw_bubbles(ax, config, rect_x, rect_y, rect_type, last_rect_q, student_id)
             face_color = "none"
             if rect_type == "student_id_rect":
                 y = rect_y + height - (grid_height * (j + 1))
-                if student_id[i] == str(j):
+                if student_id != "empty" and student_id[i] == str(j):
                     face_color = rect_color
 
             # Draw the bubble
@@ -260,7 +260,10 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     gray_out(ax, config, rect_x, rect_y, rect_type=rect_type, gray_columns=gray_columns)
 
     # Draw the bubbles
-    draw_bubbles(ax, config, rect_x, rect_y, rect_type, last_rect_q, str(student_id).zfill(4))
+    if student_id == "empty":
+        draw_bubbles(ax, config, rect_x, rect_y, rect_type, last_rect_q, student_id)
+    else:
+        draw_bubbles(ax, config, rect_x, rect_y, rect_type, last_rect_q, str(student_id).zfill(4))
 
     # Draw labels
     draw_labels(ax, config, rect_x, rect_y, rect_type, last_rect_q=last_rect_q)
@@ -324,6 +327,9 @@ def generate_bubble_sheet(test_id, student_id):
     :param test_id: Test ID
     :param student_id: Student ID (number from 0 to 9999)
     """
+    global question_number
+    question_number = 1
+
     # Load the configuration file
     config = load_config()
 
