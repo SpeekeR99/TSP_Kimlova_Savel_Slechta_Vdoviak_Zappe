@@ -2,8 +2,13 @@ import express, { Request, Response } from 'express'
 import { Router } from 'express'
 import multer, { MulterFile } from 'multer'
 import catchError from '../middleware/catch-error'
-import { Route } from '../interface'
-import { generateArks, parseXMLFile } from '../service/generateService'
+import { Quiz, Route } from '../interface'
+import path from 'path'
+import {
+	generateArks,
+	parseQuizXMLFile,
+	parseStudentCSVFile,
+} from '../service/generateService'
 
 const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -18,13 +23,25 @@ router.post(
 
 router.post(
 	'/from-xml',
-	upload.single('file'),
-	catchError(async (req: Request & { file: MulterFile }, res: Response) => {
-		const { file } = req
-		if (!file) throw new Error('XML file not present!')
+	upload.array('files'),
+	catchError(async (req: Request & { files: MulterFile[] }, res: Response) => {
+		const { files } = req
+		if (!files) throw new Error('Files are not present!')
 
-		const parsedXML = await parseXMLFile(file)
-		const response = await generateArks(parsedXML)
+		const quiz: Quiz = await files.reduce(
+			async (accPromise, file: MulterFile): Promise<Quiz> => {
+				const acc = await accPromise
+				const ext = path.extname(file.originalname)
+
+				if (ext === '.xml') acc.questions = await parseQuizXMLFile(file)
+				else if (ext === '.csv') acc.students = await parseStudentCSVFile(file)
+				else throw new Error('Unsupported file type')
+				return acc
+			},
+			Promise.resolve({})
+		)
+
+		const response = await generateArks(quiz)
 
 		if (!response.ok) throw new Error('Failed to fetch file content')
 
@@ -32,6 +49,7 @@ router.post(
 		const buffer = Buffer.from(arrayBuffer)
 
 		res.send(buffer)
+		res.send()
 	})
 )
 

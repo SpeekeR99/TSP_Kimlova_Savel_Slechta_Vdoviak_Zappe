@@ -1,5 +1,5 @@
-import React, { useCallback, useEffect, useState } from 'react'
-import { Box, Button, Container, Typography } from '@mui/material'
+import React, { useEffect, useState } from 'react'
+import { Box, Button, Container, Tooltip, Typography } from '@mui/material'
 import {
 	useDropzone,
 	DropzoneRootProps,
@@ -8,29 +8,62 @@ import {
 import { Stack } from '@mui/system'
 import { useBackDropContext } from '../hooks/useBackDropContext'
 import { UseMutationResult } from 'react-query'
+import { useSnackbarContext } from '../hooks/useSnackbarContext'
+import { SnackbarContextType } from '../context/snackbarContext/interface'
+import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 
 interface MyDropzoneProps {
-	mimeType: string
-	extension: string
+	accept: {
+		[mimeType: string]: string[]
+	}
+	maxFiles: number
 	useAction: () => UseMutationResult
 }
 
-const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
+const MyDropzone = ({ accept, useAction, maxFiles }: MyDropzoneProps) => {
 	const { mutate, isLoading, isSuccess } = useAction()
-	const [file, setFile] = useState<File | null>(null)
+	const [files, setFiles] = useState<File[]>([])
 	const { setOpenBackDrop } = useBackDropContext()
+	const { dispatch }: SnackbarContextType = useSnackbarContext()
+	const openSnackbar = (message: string, severity: string = 'success') =>
+		dispatch(setSnackbarOpen(message, severity))
 
 	useEffect(() => {
 		setOpenBackDrop(isLoading)
 	}, [isLoading])
 
 	useEffect(() => {
-		if (isSuccess) setFile(null)
+		if (isSuccess) setFiles([])
 	}, [isSuccess])
 
-	const onDrop = useCallback((acceptedFiles: File[]) => {
-		if (acceptedFiles.length > 0) setFile(acceptedFiles[0])
-	}, [])
+	const findSameType = (acceptedFileType: string): number => {
+		return files.findIndex(({ type }) => type === acceptedFileType)
+	}
+
+	const getFileInfo = (file: File): { name: string; ext: string } => {
+		const { name: fileName } = file
+		const lastDotIndex = fileName.lastIndexOf('.')
+		const name = fileName.substring(0, lastDotIndex)
+		const ext = fileName.substring(lastDotIndex)
+	
+		return { name, ext }
+	}
+	
+
+	const onDropAccepted = (acceptedFiles: File[]) => {
+		const newFiles = [...files]
+
+		acceptedFiles.forEach((acceptedFile) => {
+			const sameTypeIndex = findSameType(acceptedFile.type)
+
+			if (sameTypeIndex === -1) newFiles.push(acceptedFile)
+			else newFiles[sameTypeIndex] = acceptedFile
+		})
+
+		setFiles(newFiles)
+	}
+
+	const onDropRejected = () => openSnackbar('Invalid file type!', 'warning')
 
 	const {
 		getRootProps,
@@ -41,11 +74,10 @@ const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
 		getInputProps: () => DropzoneInputProps
 		isDragActive: boolean
 	} = useDropzone({
-		onDrop,
-		accept: {
-			[mimeType]: [extension],
-		},
-		maxFiles: 1,
+		onDropAccepted,
+		onDropRejected,
+		accept,
+		maxFiles,
 	})
 
 	return (
@@ -71,7 +103,13 @@ const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
 						<Typography variant='h6' color='#0c4b63'>
 							Drag 'n' drop or select your file...
 						</Typography>
-						<em>(Allowed types: {extension})</em>
+						<em>
+							(Allowed types:{' '}
+							{Object.values(accept)
+								.flatMap((exts) => exts)
+								.join(', ')}
+							)
+						</em>
 					</>
 				)}
 			</Box>
@@ -87,16 +125,34 @@ const MyDropzone = ({ mimeType, extension, useAction }: MyDropzoneProps) => {
 						flexShrink: 0,
 					}}
 				>
-					{file && (
-						<Typography variant='body1' color='textSecondary'>
-							File selected: {file.name}
-						</Typography>
-					)}
+					{files.map((file, i) => {
+						const { name, ext } = getFileInfo(file)
+						const fileNameLengthRestriction = 25
+						return (
+							<Tooltip title={file.name} key={`tooltip${i}`}>
+								<Typography
+									variant='body1'
+									color='textSecondary'
+									key={`file${i}`}
+								>
+									File selected:{' '}
+									<>
+										{file.name.length > fileNameLengthRestriction
+											? `${name.substring(
+												0,
+												fileNameLengthRestriction
+											)}...${ext}`
+											: file.name}
+									</>
+								</Typography>
+							</Tooltip>
+						)
+					})}
 				</Box>
 				<Button
 					variant='contained'
-					disabled={!file}
-					onClick={() => mutate(file)}
+					disabled={files.length !== maxFiles}
+					onClick={() => mutate(files)}
 				>
 					Upload file
 				</Button>

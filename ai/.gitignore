@@ -2,5 +2,6 @@
 src/output.pdf
 generated_pdfs/*
 venv
+temp.pdf
 
 __pycache__
