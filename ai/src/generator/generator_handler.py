@@ -14,13 +14,15 @@ class Student:
         self.name = name
         self.surname = surname
         self.student_number = student_number
+        self.shuffle = []
 
     def to_dict(self):
         return {
             "id": self.id,
             "name": self.name,
             "surname": self.surname,
-            "student_number": self.student_number
+            "student_number": self.student_number,
+            "shuffle": self.shuffle
         }
 
 
@@ -58,13 +60,11 @@ def preprocess_data(students_json, questions_json):
     return students, questions
 
 
-def shuffled_questions(questions_list, test_length):
+def shuffled_questions(questions_list):
     shuffled_list = questions_list.copy()
-    random.shuffle(shuffled_list)
-    student_questions = shuffled_list[:test_length]
-    for question in student_questions:
-        random.shuffle(question.answers)
-    return shuffled_list[:test_length]
+    shuffler = np.random.permutation(len(shuffled_list))
+    shuffled_list = [shuffled_list[i] for i in shuffler]
+    return shuffler, shuffled_list
 
 
 def generate_sheets(collection, questions_json, students_json):
@@ -77,7 +77,8 @@ def generate_sheets(collection, questions_json, students_json):
         generate_bubble_sheet(test_id, student.id)
 
         # generate question paper with unique set of questions
-        student_questions = shuffled_questions(questions, test_length)
+        shuffler, student_questions = shuffled_questions(questions)
+        student.shuffle = shuffler.tolist()
 
         questions_text = [question.text for question in student_questions]
         answers_text = []
