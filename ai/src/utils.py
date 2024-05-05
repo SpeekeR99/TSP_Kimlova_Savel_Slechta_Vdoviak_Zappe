@@ -99,12 +99,12 @@ def transform_eval_output_to_moodle(json_data, db_data):
     result = {
         "lastname": student_dict["surname"],
         "firstname": student_dict["name"],
-        "emailaddress": "anonymous@anonymous.anonymous",
+        "emailaddress": "-",
         "state": "Finished",
-        "startedon": "1 January 2024 00:00 AM",
-        "completed": "1 January 2024 00:00 AM",
-        "timetaken": "0 secs",
-        "grade1000": "0.00"
+        "startedon": "-",
+        "completed": "-",
+        "timetaken": "-",
+        "grade1000": "-"
     }
 
     shuffle = student_dict["shuffle"]
