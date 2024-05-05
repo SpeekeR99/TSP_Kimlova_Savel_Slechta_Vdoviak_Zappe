@@ -281,4 +281,4 @@ def preprocess_image(collection, path_to_image):
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}
 
-    return output
+    return output, test_id
