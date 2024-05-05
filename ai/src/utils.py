@@ -1,4 +1,5 @@
 import json
+import numpy as np
 
 # Config filepath
 CONFIG_FILE = "config.json"
@@ -78,3 +79,49 @@ def get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page):
             num_of_rects_in_page.append(num_of_rects_per_page)
 
     return num_of_rects_in_page
+
+
+def transform_eval_output_to_moodle(json_data, db_data):
+    """
+    Transform the evaluation output to a Moodle happy output
+    :param json_data: Evaluation output
+    :param db_data: Data from the database
+    :return: JSON response containing the student ID and answers
+    """
+    student_id = int(json_data["student_id"])
+    questions = db_data["questions"]
+    student_answers = json_data["answers"]
+    student_dict = {}
+    for student in db_data["students"]:
+        if student["id"] == student_id:
+            student_dict = student
+
+    result = {
+        "lastname": student_dict["surname"],
+        "firstname": student_dict["name"],
+        "emailaddress": "anonymous@anonymous.anonymous",
+        "state": "Finished",
+        "startedon": "1 January 2024 00:00 AM",
+        "completed": "1 January 2024 00:00 AM",
+        "timetaken": "0 secs",
+        "grade1000": "0.00"
+    }
+
+    shuffle = student_dict["shuffle"]
+    undo_shuffler = np.argsort(shuffle)
+    unshuffled_answers = [student_answers[i] for i in undo_shuffler]
+
+    for i, question in enumerate(questions):
+        answers = question["answers"]
+        student_answers = unshuffled_answers[i]
+        for j, answer in enumerate(answers):
+            student_answer = student_answers[j]
+            if student_answer == 1:
+                answer_value = answer["text"]
+                if answer_value == "true":
+                    answer_value = "Pravda"
+                elif answer_value == "false":
+                    answer_value = "Nepravda"
+                result[f"response{i + 1}"] = answer_value
+
+    return [[result]]
