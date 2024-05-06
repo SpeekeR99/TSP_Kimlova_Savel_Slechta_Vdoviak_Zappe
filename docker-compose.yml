@@ -15,5 +15,18 @@ services:
     ports:
       - "8081:8081"
 
+  mongodb_service:
+    image: mongo
+    restart: always
+    networks:
+      - api_network
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo_data:/data/db
+  
+volumes:
+  mongo_data:
+
 networks:
   api_network:
