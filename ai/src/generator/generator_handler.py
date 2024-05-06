@@ -120,7 +120,7 @@ def generate_sheets(collection, questions_json, students_json):
 
     for student in students:
         # generate bubble sheet with unique id for every student
-        generate_bubble_sheet(test_id, student.id)
+        generate_bubble_sheet(test_id, student.id, test_length)
 
         # generate question paper with unique set of questions
         shuffler, student_questions = shuffled_questions(questions)
@@ -144,7 +144,7 @@ def generate_sheets(collection, questions_json, students_json):
     )
 
     # Generate one student-less bubble sheet
-    generate_bubble_sheet(test_id, "empty")
+    generate_bubble_sheet(test_id, "empty", test_length)
 
     pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
     pdfs_a = ["generated_pdfs/empty_bubble_sheet.pdf"] + [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]

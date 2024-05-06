@@ -321,11 +321,12 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
         x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
 
-def generate_bubble_sheet(test_id, student_id):
+def generate_bubble_sheet(test_id, student_id, num_of_q):
     """
     Main function to generate the bubble sheet
     :param test_id: Test ID
     :param student_id: Student ID (number from 0 to 9999)
+    :param num_of_q: Number of questions
     """
     global question_number
     question_number = 1
@@ -340,7 +341,6 @@ def generate_bubble_sheet(test_id, student_id):
     offset_between_rect = config["rect_settings"]["rect_space_between"]
 
     # Number of questions
-    num_of_q = config["number_of_questions"]
     num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
     num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
     last_rect_q = num_of_q % num_of_q_per_rect
