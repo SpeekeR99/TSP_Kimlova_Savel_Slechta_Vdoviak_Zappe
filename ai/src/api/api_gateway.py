@@ -14,7 +14,18 @@ from ai.src.utils import transform_eval_output_to_moodle
 
 #  Initialize the Flask app
 app = Flask(__name__)
-uri = "mongodb://localhost:27017"
+
+mongo_service_port, mongo_service_host = None, None
+if (os.environ.get('ENV') == 'production'):
+	mongo_service_port = os.environ.get('MONGO_DB_PORT')
+	mongo_service_host = os.environ.get('MONGO_DB_HOST')
+	if mongo_service_port is None or mongo_service_host is None:
+		raise ValueError("MongoDB service host and port must be defined in the environment variables.")
+else:
+	mongo_service_port = 27017
+	mongo_service_host = 'localhost'
+uri = f"mongodb://{mongo_service_host}:{mongo_service_port}"
+
 # Connect to MongoDB
 client = MongoClient(uri)
 db = client['adt']
