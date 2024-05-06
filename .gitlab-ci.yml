@@ -42,8 +42,7 @@ test-unit-web:
     - npm run test
 
 # TODO (slechtaj): enable when kiv runners are fixed
-# building in separate project for now, because kiv runners suck (https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986)
-
+# -> building in separate project for now, because kiv runners suck (https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986)
 # build-docker-image:
 #   stage: build
 #   image: $IMAGE_DOCKER
