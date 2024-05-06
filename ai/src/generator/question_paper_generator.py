@@ -27,6 +27,26 @@ def latex_to_img(latex_str, font_size=12):
     return temp_file
 
 
+def wrap_text(text, max_width, font, font_size):
+    words = text.split(' ')
+    lines = []
+    current_line = []
+    current_width = 0
+
+    for word in words:
+        word_width = pdfmetrics.stringWidth(word, font, font_size)
+        if current_width + word_width <= max_width:
+            current_line.append(word)
+            current_width += word_width
+        else:
+            lines.append(' '.join(current_line))
+            current_line = [word]
+            current_width = word_width
+
+    lines.append(' '.join(current_line))
+    return lines
+
+
 def draw_labels(student_id, student_questions, question_answers, filename):
     c = canvas.Canvas(filename, pagesize=letter)
 
@@ -61,7 +81,11 @@ def draw_labels(student_id, student_questions, question_answers, filename):
         y -= y_spacing
 
         # If question with answers does not fit in the page
-        overall_height = (label_height + y_spacing / 2) + (len(answers) * (label_height + y_spacing / 5))
+        lines = wrap_text(question, letter[0] - 3 * x_margin, "Arial", 12)
+        overall_height = len(lines) * label_height
+        for answer in answers:
+            lines += wrap_text(answer, letter[0] - 3 * x_margin, "Arial", 12)
+            overall_height += len(lines) * label_height
         if y - overall_height < y_margin / 2:
             # Draw page number before starting a new page
             c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
@@ -78,12 +102,22 @@ def draw_labels(student_id, student_questions, question_answers, filename):
         char_index = 0
         question_text = ""
         # Char stream
+        x_so_far = c.stringWidth(question_number + ": ", "Arial", 12)
         while char_index < len(question):
             current_char = question[char_index]
             if current_char == "$":
                 # First draw the text so far
-                c.drawString(x, y, question_text)
-                x += c.stringWidth(question_text, "Arial", 12)
+                lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+                for line in lines:
+                    c.drawString(x, y, line)
+                    y -= label_height
+                    x = x_margin
+                if len(lines) == 1:
+                    y += label_height
+                    x_so_far += c.stringWidth(lines[0], "Arial", 12)
+                    x += x_so_far
+                else:
+                    x_so_far = x
                 question_text = ""
 
                 # Find the end of the math expression
@@ -98,6 +132,7 @@ def draw_labels(student_id, student_questions, question_answers, filename):
                 height, width = img.shape[:2]
                 new_height = height / 14
                 new_width = width / 14
+                x_so_far += new_width
 
                 # Draw the image
                 c.drawImage(latex, x, y - new_height / 2.5, width=new_width, height=new_height)
@@ -111,16 +146,21 @@ def draw_labels(student_id, student_questions, question_answers, filename):
                 char_index += 1
 
         # Draw the remaining text
-        c.drawString(x, y, question_text)
+        lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+        for line in lines:
+            c.drawString(x, y, line)
+            y -= label_height
+            x = x_margin
 
-        x = x_margin
-        y -= (label_height + y_spacing / 2)
+        y -= y_spacing
 
         for j, answer in enumerate(answers):
             x_answer = x + 20
             question_letter = chr(65 + j) + "."
-            c.drawString(x_answer, y, question_letter + " " + answer)
-            y -= (label_height + y_spacing / 5)
+            lines = wrap_text(question_letter + " " + answer, letter[0] - 3 * x_margin, "Arial", 12)
+            for line in lines:
+                c.drawString(x_answer, y, line)
+                y -= label_height
 
     # Draw page number on the last page
     c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
