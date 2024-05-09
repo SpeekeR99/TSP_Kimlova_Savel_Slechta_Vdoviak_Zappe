@@ -5,12 +5,7 @@ import csv from 'csv-parser'
 import { Readable } from 'stream'
 
 const getValueFromHTMLString = (htmlString: string): string => {
-	const startIndex = htmlString.indexOf('>') + 1
-	const endIndex = htmlString.lastIndexOf('<')
-
 	return htmlString
-		.substring(startIndex, endIndex === -1 ? htmlString.length : endIndex)
-		.trim()
 }
 
 const getAnswers = (answers: any[]): object[] => {
