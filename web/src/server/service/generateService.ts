@@ -46,13 +46,14 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 
 					const { questiontext } = question
 					const text = getValueFromHTMLString(questiontext[0].text[0])
+					const name = question.name[0].text
 
 					const answers = getAnswers(question.answer)
 
 					const [defaultGrade] = question.defaultgrade
 					const [penalty] = question.penalty
 
-					return { type, id, text, answers, defaultGrade, penalty }
+					return { type, id, text, answers, defaultGrade, penalty, name }
 				})
 				.filter(Boolean)
 
