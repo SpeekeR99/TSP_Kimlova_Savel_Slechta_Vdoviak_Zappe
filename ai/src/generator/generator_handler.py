@@ -2,6 +2,7 @@ import os
 import fitz
 import uuid
 import numpy as np
+import copy
 
 from ai.src.generator.bubble_sheet_generator import generate_bubble_sheet
 from ai.src.generator.question_paper_generator import generate_question_paper
@@ -11,7 +12,7 @@ class Student:
     """
     Class representing a student
     """
-    def __init__(self, id, name, surname, student_number):
+    def __init__(self, id, name, surname, student_number, username, email):
         """
         Initialize the student
         :param id: Our internal ID
@@ -23,6 +24,8 @@ class Student:
         self.name = name
         self.surname = surname
         self.student_number = student_number
+        self.username = username
+        self.email = email
         self.shuffle = []
 
     def to_dict(self):
@@ -35,7 +38,9 @@ class Student:
             "name": self.name,
             "surname": self.surname,
             "student_number": self.student_number,
-            "shuffle": self.shuffle
+            "username": self.username,
+            "email": self.email,
+            "shuffle": self.shuffle,
         }
 
 
@@ -43,11 +48,12 @@ class Question:
     """
     Class representing a question
     """
-    def __init__(self, question_id, type, text, answers, default_grade=None, penalty=None):
+    def __init__(self, question_id, type, name, text, answers, default_grade=None, penalty=None):
         """
         Initialize the question
         :param question_id: Question ID
         :param type: Type of the question
+        :param name: Name of the question
         :param text: Text of the question
         :param answers: Answers to the question
         :param default_grade: Default grade
@@ -55,6 +61,7 @@ class Question:
         """
         self.question_id = question_id
         self.type = type
+        self.name = name
         self.text = text
         self.answers = answers
         self.default_grade = default_grade
@@ -68,6 +75,7 @@ class Question:
         return {
             "question_id": self.question_id,
             "type": self.type,
+            "name": self.name,
             "text": self.text,
             "answers": self.answers,
             "default_grade": self.default_grade,
@@ -85,12 +93,35 @@ def preprocess_data(students_json, questions_json):
     student_id = 0
     students = []
     for student in students_json:
-        students.append(Student(student_id, student["jmeno"], student["prijmeni"], student["os_cislo"]))
+        students.append(Student(student_id, student["jmeno"], student["prijmeni"], student["osCislo"], student["userName"], student["email"]))
         student_id += 1
 
     questions = []
     for question in questions_json:
-        questions.append(Question(question["id"], question["type"], question["text"], question["answers"], question["defaultGrade"], question["penalty"]))
+        substr_1 = "<p"
+        substr_2 = ">"
+        substr_3 = "</p>"
+        # Find "<p" and remove the html up to the next ">" and the "</p>"
+        name = question["name"][0]
+        if substr_1 in name:
+            name = name[name.find(substr_1) + len(substr_1):]
+            name = name[name.find(substr_2) + len(substr_2):]
+            name = name[:name.find(substr_3)]
+
+        text = question["text"]
+        if substr_1 in text:
+            text = text[text.find(substr_1) + len(substr_1):]
+            text = text[text.find(substr_2) + len(substr_2):]
+            text = text[:text.find(substr_3)] + text[text.find(substr_3) + len(substr_3):]
+
+        answers = question["answers"]
+        for answer in answers:
+            if substr_1 in answer["text"]:
+                answer["text"] = answer["text"][answer["text"].find(substr_1) + len(substr_1):]
+                answer["text"] = answer["text"][answer["text"].find(substr_2) + len(substr_2):]
+                answer["text"] = answer["text"][:answer["text"].find(substr_3)]
+
+        questions.append(Question(question["id"], question["type"], name, text, answers, question["defaultGrade"], question["penalty"]))
 
     return students, questions
 
@@ -101,10 +132,23 @@ def shuffled_questions(questions_list):
     :param questions_list: List of questions
     :return: Shuffler and shuffled list
     """
-    shuffled_list = questions_list.copy()
+    # Shuffle the questions
+    shuffled_list = copy.deepcopy(questions_list)
     shuffler = np.random.permutation(len(shuffled_list))
     shuffled_list = [shuffled_list[i] for i in shuffler]
-    return shuffler, shuffled_list
+
+    # Shuffle the answers as well
+    answer_shufflers = []
+    for question in shuffled_list:
+        answer_shuffler = np.random.permutation(len(question.answers))
+        question.answers = [question.answers[i] for i in answer_shuffler]
+        answer_shufflers.append(answer_shuffler)
+
+    shuffle = []
+    for i in range(len(shuffler)):
+        shuffle.append({"question": shuffler[i].tolist(), "answers": answer_shufflers[i].tolist()})
+
+    return shuffle, shuffled_list
 
 
 def generate_sheets(collection, questions_json, students_json):
@@ -123,10 +167,10 @@ def generate_sheets(collection, questions_json, students_json):
         generate_bubble_sheet(test_id, student.id, test_length)
 
         # generate question paper with unique set of questions
-        shuffler, student_questions = shuffled_questions(questions)
-        student.shuffle = shuffler.tolist()
+        shuffle, student_questions = shuffled_questions(questions)
+        student.shuffle = shuffle
 
-        questions_text = [question.text for question in student_questions]
+        questions_text = [str(question.name + "\n" + question.text) for question in student_questions]
         answers_text = []
         for question in student_questions:
             answers_text.append([answer["text"] for answer in question.answers])

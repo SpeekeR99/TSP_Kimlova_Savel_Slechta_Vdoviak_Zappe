@@ -28,22 +28,24 @@ def latex_to_img(latex_str, font_size=12):
 
 
 def wrap_text(text, max_width, font, font_size):
-    words = text.split(' ')
+    paragraphs = text.split('\n')
     lines = []
-    current_line = []
-    current_width = 0
+    for paragraph in paragraphs:
+        words = paragraph.split(' ')
+        current_line = []
+        current_width = 0
 
-    for word in words:
-        word_width = pdfmetrics.stringWidth(word, font, font_size)
-        if current_width + word_width <= max_width:
-            current_line.append(word)
-            current_width += word_width
-        else:
-            lines.append(' '.join(current_line))
-            current_line = [word]
-            current_width = word_width
+        for word in words:
+            word_width = pdfmetrics.stringWidth(word, font, font_size)
+            if current_width + word_width <= max_width:
+                current_line.append(word)
+                current_width += word_width
+            else:
+                lines.append(' '.join(current_line))
+                current_line = [word]
+                current_width = word_width
 
-    lines.append(' '.join(current_line))
+        lines.append(' '.join(current_line))
     return lines
 
 

@@ -16,14 +16,14 @@ from ai.src.utils import transform_eval_output_to_moodle
 app = Flask(__name__)
 
 mongo_service_port, mongo_service_host = None, None
-if (os.environ.get('ENV') == 'production'):
-	mongo_service_port = os.environ.get('MONGO_DB_PORT')
-	mongo_service_host = os.environ.get('MONGO_DB_HOST')
-	if mongo_service_port is None or mongo_service_host is None:
-		raise ValueError("MongoDB service host and port must be defined in the environment variables.")
+if os.environ.get('ENV') == 'production':
+    mongo_service_port = os.environ.get('MONGO_DB_PORT')
+    mongo_service_host = os.environ.get('MONGO_DB_HOST')
+    if mongo_service_port is None or mongo_service_host is None:
+        raise ValueError("MongoDB service host and port must be defined in the environment variables.")
 else:
-	mongo_service_port = 27017
-	mongo_service_host = 'localhost'
+    mongo_service_port = 27017
+    mongo_service_host = 'localhost'
 uri = f"mongodb://{mongo_service_host}:{mongo_service_port}"
 
 # Connect to MongoDB
@@ -48,6 +48,7 @@ def catch_errors(func):
         try:
             return func(*args, **kwargs)
         except Exception as e:
+            print(f'An error occurred: {e}')
             return jsonify({'error': f'An error occurred: {e}'}), 500
     return wrapper
 
@@ -106,7 +107,7 @@ def evaluate_answers():
         db_data = collection.find_one({"test_id": test_id})
         result = transform_eval_output_to_moodle(json_data, db_data)
 
-        return jsonify(result)
+        return jsonify([result])
 
     return catch_errors(inner_func)()
 
