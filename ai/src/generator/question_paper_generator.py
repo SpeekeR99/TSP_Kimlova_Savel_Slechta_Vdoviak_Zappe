@@ -5,6 +5,12 @@ from reportlab.lib.pagesizes import letter
 from reportlab.pdfbase import pdfmetrics
 from reportlab.pdfbase.ttfonts import TTFont
 from reportlab.pdfgen import canvas
+# from pygments import highlight
+# from pygments.lexers import PythonLexer
+# from pygments.formatters import SvgFormatter
+# import fitz
+# from PIL import Image
+# import numpy as np
 
 
 def latex_to_img(latex_str, font_size=12):
@@ -49,6 +55,54 @@ def wrap_text(text, max_width, font, font_size):
     return lines
 
 
+def html_strip(html):
+    # Remove HTML tags
+    stripped = ""
+    in_tag = False
+    for char in html:
+        if char == "<":
+            in_tag = True
+        elif char == ">":
+            in_tag = False
+        elif not in_tag:
+            stripped += char
+
+    stripped = replace_html_entities(stripped)
+    stripped = stripped.encode("utf-8").decode("utf-8")
+
+    return stripped
+
+
+def replace_html_entities(text):
+    text = text.replace("&nbsp;", " ")
+    text = text.replace("&lt;", "<")
+    text = text.replace("&gt;", ">")
+    text = text.replace("&amp;", "&")
+    text = text.replace("&quot;", "\"")
+    text = text.replace("&apos;", "'")
+    text = text.replace("&#8221;", "\"")
+    text = text.replace("&#8220;", "\"")
+    text = text.replace("&#8211;", "-")
+    text = text.replace("&#8212;", "-")
+    text = text.replace("&#8230;", "...")
+    text = text.replace("&#8216;", "'")
+    text = text.replace("&#8217;", "'")
+    text = text.replace("&#39;", "'")
+    return text
+
+
+def contains_code(text):
+    code_start = text.find("<pre>")
+    code_end = text.find("</pre>")
+    return code_start != -1 and code_end != -1
+
+
+def get_code_substring(text):
+    code_start = text.find("<pre>")
+    code_end = text.find("</pre>")
+    return text[code_start:code_end + len("</pre>")]
+
+
 def draw_labels(student_id, student_questions, question_answers, filename):
     c = canvas.Canvas(filename, pagesize=letter)
 
@@ -79,6 +133,20 @@ def draw_labels(student_id, student_questions, question_answers, filename):
         question = student_questions[i]
         answers = question_answers[i]
 
+        question = question.replace("<br>", "\n")
+        # code_part = None
+
+        # if contains_code(question):
+        #     code_part = get_code_substring(question)
+        #     question = question.replace(code_part, "<CODE>")
+        #     code_part = html_strip(code_part)
+
+        question = html_strip(question)
+
+        for j in range(len(answers)):
+            answers[j] = answers[j].replace("<br>", "")
+            answers[j] = html_strip(answers[j])
+
         c.line(x, y + 10, letter[0] - x_margin, y + 10)
         y -= y_spacing
 
@@ -93,6 +161,7 @@ def draw_labels(student_id, student_questions, question_answers, filename):
             c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
             y = letter[1] - y_margin
             c.showPage()
+            c.setFont("Arial", 12)
             c.line(x, y + 10, letter[0] - x_margin, y + 10)
             y -= y_spacing
 
@@ -100,6 +169,58 @@ def draw_labels(student_id, student_questions, question_answers, filename):
         c.drawString(x, y, question_number + ": ")
         x += c.stringWidth(question_number + ": ", "Arial", 12)
 
+        # # Question may have code in it
+        # if code_part:
+        #     # Draw the text so far
+        #     question_text = question.split("<CODE>")[0]
+        #     lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+        #     for line in lines:
+        #         c.drawString(x, y, line)
+        #         y -= label_height
+        #         x = x_margin
+        #
+        #     # Highlight the code
+        #     highlighted_code = highlight(code_part, PythonLexer(), SvgFormatter())
+        #     header_utf_8 = '<?xml version="1.0" encoding="UTF-8"?>'
+        #     highlighted_code = highlighted_code.split("\n", 1)[1]
+        #     highlighted_code = header_utf_8 + highlighted_code
+        #
+        #     # Add size to the svg
+        #     height_overall = len(wrap_text(code_part, letter[0], "Arial", 12)) * label_height / 1.1
+        #     width_max = np.max([pdfmetrics.stringWidth(line, "Arial", 12) for line in code_part.split("\n")])
+        #     highlighted_code = highlighted_code.replace("<svg", f"<svg width='{width_max}' height='{height_overall}'")
+        #
+        #     filename = "temp" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + ".svg"
+        #     with open(filename, "w", encoding="utf-8") as f:
+        #         f.write(highlighted_code)
+        #
+        #     # Get the dimensions of the image
+        #     img = fitz.open(filename)
+        #     img = img[0].get_pixmap()
+        #     img = Image.frombytes("RGB", (img.w, img.h), img.samples)
+        #     filename_png = filename.replace(".svg", ".png")
+        #     img.save(filename_png)
+        #     os.remove(filename)
+        #
+        #     # # Draw the image
+        #     y -= label_height
+        #     x = x_margin
+        #     c.drawImage(filename_png, x, y - img.height, width=img.width, height=img.height)
+        #     os.remove(filename_png)
+        #
+        #     y -= img.height
+        #
+        #     # Draw the remaining text
+        #     question_text = question.split("<CODE>")
+        #     if len(question_text) > 1:
+        #         question_text = question_text[1]
+        #         lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+        #         for line in lines:
+        #             c.drawString(x, y, line)
+        #             y -= label_height
+        #             x = x_margin
+        # # Normal text
+        # else:
         # Question may have LaTeX math in it
         char_index = 0
         question_text = ""
