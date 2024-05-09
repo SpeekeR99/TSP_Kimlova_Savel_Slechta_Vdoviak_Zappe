@@ -3,6 +3,7 @@ import { MulterFile } from 'multer'
 import { Question, Quiz, Student } from '../interface'
 import csv from 'csv-parser'
 import { Readable } from 'stream'
+import iconv from 'iconv-lite'
 
 const getValueFromHTMLString = (htmlString: string): string => {
 	return htmlString
@@ -72,7 +73,7 @@ export const generateArks = async (quiz: Quiz): Promise<Response> => {
 export const parseStudentCSVFile = async (
 	file: MulterFile
 ): Promise<Student[]> => {
-	const csvData = file.buffer.toString('utf-8')
+	const csvData = iconv.decode(file.buffer, 'windows-1250')
 
 	const results = []
 	return new Promise((resolve, reject) => {
