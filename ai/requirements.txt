@@ -10,3 +10,4 @@ scikit-image
 pymongo
 qrcode
 pygments
+PyPDF2

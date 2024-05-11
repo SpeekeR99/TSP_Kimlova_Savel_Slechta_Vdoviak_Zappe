@@ -228,7 +228,6 @@ def draw_labels(student_id, student_questions, question_answers, filename):
             # Set font to Arial 12
             highlighted_code = highlighted_code.replace("font-family=\"monospace\"", "font-family=\"Arial\"")
             highlighted_code = highlighted_code.replace("font-size=\"14px\"", "font-size=\"12\"")
-            print(highlighted_code)
 
             # Add size to the svg
             height_overall = len(code_part.split("\n")) * label_height

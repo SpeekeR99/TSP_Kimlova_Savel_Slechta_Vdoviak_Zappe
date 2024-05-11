@@ -8,7 +8,7 @@ from pymongo import MongoClient
 sys.path.append(os.path.join(os.getcwd(), ".."))
 
 from ai.src.generator.generator_handler import generate_sheets
-from ai.src.evaluator.preprocessor import preprocess_image
+from ai.src.evaluator.preprocessor import map_pages_to_students, preprocess_image, create_temp_pdfs
 from ai.src.utils import transform_eval_output_to_moodle
 
 
@@ -100,14 +100,22 @@ def evaluate_answers():
             fp.write(file_data)
 
         # Extract text from the PDF
-        json_data, test_id = preprocess_image(collection, "temp.pdf")
+        student_page_ids = map_pages_to_students(collection, "temp.pdf")
+        pdf_names = create_temp_pdfs(student_page_ids, "temp.pdf")
         os.remove("temp.pdf")
 
-        # Transform the output to a Moodle happy output
-        db_data = collection.find_one({"test_id": test_id})
-        result = transform_eval_output_to_moodle(json_data, db_data)
+        result = []
+        for pdf in pdf_names:
+            json_data, test_id = preprocess_image(collection, pdf)
 
-        return jsonify([result])
+            # Transform the output to a Moodle happy output
+            db_data = collection.find_one({"test_id": test_id})
+            student_result = transform_eval_output_to_moodle(json_data, db_data)
+            result.append(student_result)
+
+            os.remove(pdf)
+
+        return jsonify(result)
 
     return catch_errors(inner_func)()
 
