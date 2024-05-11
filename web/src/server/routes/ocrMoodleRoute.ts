@@ -4,7 +4,7 @@ import { Router } from 'express'
 import catchError from '../middleware/catch-error'
 import { Route } from '../interface'
 import { MulterFile } from 'multer'
-import { validateFile } from '../service/ocrMoodleService'
+import { transformToCSV, validateFile } from '../service/ocrMoodleService'
 
 const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -20,8 +20,8 @@ router.post(
 		if (!response.ok) throw new Error('Failed to validate data')
 
 		const result = await response.json()
-
-		res.json(result)
+		const csvResult = transformToCSV(result)
+		res.send(csvResult)
 	})
 )
 
