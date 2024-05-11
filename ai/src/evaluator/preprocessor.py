@@ -4,6 +4,8 @@ import matplotlib.pyplot as plt
 import skimage.filters.thresholding as th
 import pythreshold.utils as putils
 import imutils.contours
+import json
+from PyPDF2 import PdfReader, PdfWriter
 
 from ai.src.evaluator.pdf_rotator import load_pdf
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
@@ -101,6 +103,154 @@ def find_edges(image):
     return edges
 
 
+def map_pages_to_students(collection, path_to_pdf):
+    # Load the configuration file
+    config = load_config()
+
+    pdf = load_pdf(path_to_pdf)
+
+    # A4 paper size in inches
+    A4 = get_A4_size()
+
+    # Find the QR code
+    first_page = pdf[0]
+    qcd = cv2.QRCodeDetector()
+    qr_json, _, _ = qcd.detectAndDecode(first_page)
+    qr_json = json.loads(qr_json)
+    test_id = qr_json["test_id"]
+
+    # Calculate the number of rectangles that can fit in the figure
+    num_of_rects_per_page = get_max_num_of_rects_in_page(config, A4)
+
+    # Number of questions
+    num_of_q = collection.find_one({"test_id": test_id})["num_of_questions"]
+    num_of_q_per_rect = config["answer_rect"]["grid"]["rows"]
+    num_of_rect = int(np.ceil(num_of_q / num_of_q_per_rect))
+
+    # Calculate the number of pages needed
+    num_of_pages = int(np.ceil(num_of_rect / num_of_rects_per_page))
+    num_of_rects_in_page = get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page)
+
+    student_page_ids = {}
+
+    for pdf_page_index, page in enumerate(pdf):
+        student_id = []
+
+        qcd = cv2.QRCodeDetector()
+        qr_json, _, _ = qcd.detectAndDecode(page)
+        qr_json = json.loads(qr_json)
+        page_num = qr_json["page"]
+
+        k = num_of_rects_in_page[page_num] + 1  # +1 for student id
+
+        # Convert the image to grayscale and threshold it
+        gray_filled = cv2.cvtColor(page, cv2.COLOR_RGB2GRAY)
+        threshed_filled = threshold_otsu(gray_filled, 170)
+
+        # Find the big boxes around the answer bubbles
+        contours = find_contours(threshed_filled)
+        # Pick k largest contours
+
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:k]
+        contours = imutils.contours.sort_contours(contours, method="left-to-right")[0]
+
+        student_contour = contours[0]
+        x, y, w, h = cv2.boundingRect(student_contour)
+
+        # Throw away 1% of the border of the image
+        diff = w // 100 if w > h else h // 100
+        x += diff
+        y += diff
+        w -= 2 * diff
+        h -= 2 * diff
+
+        student_subimage = page[y:y + h, x:x + w]
+
+        # Find contours of circles
+        gray = cv2.cvtColor(student_subimage, cv2.COLOR_RGB2GRAY)
+        threshed = threshold_otsu(gray, 170)
+        contours = find_contours(threshed)
+        # Find specified number of circles
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:40]
+        # Sort them top to bottom, for easier processing
+        contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
+
+        # Threshold the subimage
+        threshed_subimage = cv2.GaussianBlur(student_subimage, (5, 5), 0)
+        threshed_subimage = threshold_mean(threshed_subimage)
+
+        # Iterate over the circles
+        for (q, j) in enumerate(np.arange(0, len(contours), 4)):
+            # Sort the contours from left to right
+            subcontours = imutils.contours.sort_contours(contours[j:j + 4])[0]
+            # Create array for answers
+            student_id.append([])
+
+            # Iterate over the subcontours
+            for bubble in subcontours:
+                # Find the bounding box of the bubble
+                (x, y, w, h) = cv2.boundingRect(bubble)
+
+                # Find the bubble subimage and convert it to grayscale
+                bubble_subimage = threshed_subimage[y:y + h, x:x + w]
+                one_channel = cv2.cvtColor(bubble_subimage, cv2.COLOR_RGB2GRAY)
+                # Close the image using morphological operations
+                closed = cv2.morphologyEx(one_channel, cv2.MORPH_CLOSE,
+                                          cv2.getStructuringElement(cv2.MORPH_ELLIPSE, (5, 5)))
+
+                # Count the number of white pixels and the total number of pixels
+                pixels = cv2.countNonZero(closed)
+                num_pixels = w * h
+
+                # We found out that the circle often takes up around 40-50% of the area
+                # So if the whole area is at least 75% filled, the student probably tried to at least fill the circle
+                if pixels > 0.75 * num_pixels:
+                    student_id[q].append(1)
+                else:
+                    student_id[q].append(0)
+
+        detected_student_id = ''.join(str(column.index(1)) for column in zip(*student_id) if 1 in column)
+
+        if detected_student_id not in student_page_ids:
+            student_page_ids[detected_student_id] = [{page_num: pdf_page_index}]
+        else:
+            student_page_ids[detected_student_id].append({page_num: pdf_page_index})
+
+    # Sort the pages by the page_num key
+    result_student_page_ids = {}
+    for student_id, pages in student_page_ids.items():
+        result_student_page_ids[student_id] = sorted(pages, key=lambda x: list(x.keys())[0])
+
+    # Throw away page_num keys
+    for student_id, pages in result_student_page_ids.items():
+        result_student_page_ids[student_id] = [list(page.values())[0] for page in pages]
+
+    print(result_student_page_ids)
+
+    return result_student_page_ids
+
+
+def create_temp_pdfs(student_page_ids, path_to_pdf):
+    pdf_names = []
+
+    # Create sub pdfs for each student (group by student ID over pages)
+    reader = PdfReader(path_to_pdf)
+    for student_id, page_ids in student_page_ids.items():
+        try:
+            _ = int(student_id)
+        except ValueError:
+            continue
+
+        writer = PdfWriter()
+        for page_id in page_ids:
+            writer.add_page(reader.pages[page_id])
+        pdf_name = f"temp_{student_id}.pdf"
+        writer.write(pdf_name)
+        pdf_names.append(pdf_name)
+
+    return pdf_names
+
+
 def preprocess_image(collection, path_to_image):
     """
     Preprocess the image and detect filled bubbles
@@ -108,7 +258,6 @@ def preprocess_image(collection, path_to_image):
     :param path_to_image: Path to the image
     :return: JSON output with student ID and answers
     """
-
     # Load the configuration file
     config = load_config()
 
@@ -120,7 +269,9 @@ def preprocess_image(collection, path_to_image):
     # Find the QR code
     first_page = scanned_filled_images[0]
     qcd = cv2.QRCodeDetector()
-    test_id, _, _ = qcd.detectAndDecode(first_page)
+    qr_json, _, _ = qcd.detectAndDecode(first_page)
+    qr_json = json.loads(qr_json)
+    test_id = qr_json["test_id"]
 
     # A4 paper size in inches
     A4 = get_A4_size()

@@ -5,6 +5,7 @@ import matplotlib.pyplot as plt
 import matplotlib.patches as patches
 import fitz
 import qrcode
+import json
 
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
 
@@ -288,13 +289,14 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
     draw_rect(ax, config, x, y, rect_type="student_id_rect", gray_columns=True, student_id=student_id)
 
     # Draw QR code to the top right corner serving as pdf rotation indicator also
+    qr_data = {"test_id": test_id, "page": page}
     qr = qrcode.QRCode(
         version=1,
         error_correction=qrcode.constants.ERROR_CORRECT_L,
         box_size=10,
         border=4,
     )
-    qr.add_data(test_id)
+    qr.add_data(json.dumps(qr_data))
     qr.make(fit=True)
     qr = qr.make_image(fill_color="black", back_color="white")
     qr = qr.resize((100, 100))
