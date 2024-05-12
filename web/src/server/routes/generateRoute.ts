@@ -16,7 +16,6 @@ const upload = multer({ storage: multer.memoryStorage() })
 router.post(
 	'/from-moodle',
 	catchError(async (req: Request, res: Response) => {
-		console.log(req.body)
 		res.json({ status: 'ok' })
 	})
 )

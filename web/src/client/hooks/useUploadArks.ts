@@ -46,7 +46,8 @@ export const useUploadArks = () => {
 		onSuccess: () => {
 			openSnackbar('Files generated succeesfully!')
 		},
-		onError: () => {
+		onError: (e) => {
+			console.error(e)
 			openSnackbar('Error while generating files!', 'error')
 		},
 	})
