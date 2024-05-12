@@ -18,6 +18,8 @@ build_and_push_image() {
 	
 	echo "Pushing image: $image_name"
 	docker push "$image_name"
+	
+	cd ..
 }
 
 if [ "$1" = "web" ]; then
@@ -26,5 +28,5 @@ elif [ "$1" = "ai" ]; then
 	build_and_push_image "ai" "$AI_IMG_NAME"
 else
 	build_and_push_image "web" "$WEB_IMG_NAME"
-	build_and_push_image "../ai" "$AI_IMG_NAME"
+	build_and_push_image "ai" "$AI_IMG_NAME"
 fi
