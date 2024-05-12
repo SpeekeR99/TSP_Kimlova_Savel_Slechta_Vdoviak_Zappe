@@ -5,4 +5,4 @@
   roles:
     - users
     - docker
-    - nodejsapp
+    - app
