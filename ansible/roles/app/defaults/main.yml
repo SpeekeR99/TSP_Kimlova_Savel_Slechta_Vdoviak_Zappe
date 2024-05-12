@@ -6,3 +6,5 @@ gitlab_image_name: "{{ gitlab_app_package_name }}"
 gitlab_image_tag: "latest"
 
 gitlab_image_url: "{{ gitlab_docker_registry }}/{{ gitlab_image_name }}:{{ gitlab_image_tag }}"
+
+app_base_dir: "/opt/gc_app"

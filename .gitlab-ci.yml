@@ -6,7 +6,6 @@ variables:
   WEB_DIR: "web"
   ANSIBLE_DIR: "ansible"
 
-
 workflow:
   rules:
     # main branch = production
@@ -14,14 +13,14 @@ workflow:
       variables:
         PACKAGE_NAME: "web-dist"
         ENVIRONMENT: production
-        NODEJSAPP_URL: http://147.228.173.196
+        NODEJSAPP_URL: http://147.228.173.197
 
     # any other branch = development
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       variables:
         PACKAGE_NAME: "web-dist-dev"
         ENVIRONMENT: development
-        NODEJSAPP_URL: http://147.228.173.197
+        NODEJSAPP_URL: http://147.228.173.196
 
 default:
   image: alpine:3.17
@@ -51,7 +50,7 @@ test-unit-web:
 #   script:
 #     - ./scripts/build-publish-docker.sh $PACKAGE_NAME
 
-deploy-nodejsapp:
+deploy-app:
   stage: deploy
   image: $IMAGE_ANSIBLE
   before_script:
