@@ -1,5 +1,4 @@
 import json
-import numpy as np
 
 # Config filepath
 CONFIG_FILE = "config.json"
@@ -79,59 +78,3 @@ def get_num_of_rects_per_page(num_of_rect, num_of_pages, num_of_rects_per_page):
             num_of_rects_in_page.append(num_of_rects_per_page)
 
     return num_of_rects_in_page
-
-
-def transform_eval_output_to_moodle(json_data, db_data):
-    """
-    Transform the evaluation output to a Moodle happy output
-    :param json_data: Evaluation output
-    :param db_data: Data from the database
-    :return: JSON response containing the student ID and answers
-    """
-    student_id = int(json_data["student_id"])
-    questions = db_data["questions"]
-    student_answers = json_data["answers"]
-    student_dict = {}
-    for student in db_data["students"]:
-        if student["id"] == student_id:
-            student_dict = student
-
-    result = {
-        "jmeno": student_dict["name"],
-        "prijmeni": student_dict["surname"],
-        "os_cislo": student_dict["student_number"],
-        "login": student_dict["username"],
-        "email": student_dict["email"],
-        "body": "TODO",
-        "body_celkem": "TODO",
-        "body_rel": "TODO",
-        "result": []
-    }
-
-    shuffle = student_dict["shuffle"]
-    question_undo_shuffle = []
-    answers_undo_shuffles = []
-    for obj in shuffle:
-        question_undo_shuffle.append(obj["question"])
-        answers_undo_shuffles.append(obj["answers"])
-
-    unshuffled_answer_arrays = [student_answers[i] for i in question_undo_shuffle]
-    answers_undo_shuffles = [answers_undo_shuffles[i] for i in question_undo_shuffle]
-
-    final_answers = []
-    for i, answer_array in enumerate(unshuffled_answer_arrays):
-        unshuffled_answers = [answer_array[j] for j in answers_undo_shuffles[i]]
-        final_answers.append(unshuffled_answers)
-
-    for i, question in enumerate(questions):
-        correct_answers = question["answers"]
-        answers = final_answers[i]
-
-        obj = {"question": {"name": question["name"], "text": question["text"]}, "answer": [], "points": "TODO"}
-        for j, answer in enumerate(answers):
-            if answer == 1:
-                obj["answer"].append(correct_answers[j]["text"])
-
-        result["result"].append(obj)
-
-    return result
