@@ -17,15 +17,14 @@ const fetchData = async (files: File[]) => {
 		})
 
 		if (response.ok) {
-			const data = await response.json()
-			const jsonData = JSON.stringify(data)
+			const csvData = await response.text()
 
-			const blob = new Blob([jsonData], { type: 'application/json' })
+			const blob = new Blob([csvData], { type: 'text/csv' })
 			const url = URL.createObjectURL(blob)
 
 			const link = document.createElement('a')
 			link.href = url
-			link.download = 'result.json'
+			link.download = 'result.csv'
 			document.body.appendChild(link)
 			link.click()
 			document.body.removeChild(link)
