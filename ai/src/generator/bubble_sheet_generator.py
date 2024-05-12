@@ -300,7 +300,7 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
     qr.make(fit=True)
     qr = qr.make_image(fill_color="black", back_color="white")
     qr = qr.resize((100, 100))
-    ax_in_ax = ax.inset_axes([0.92, 0.9, 0.1, 0.1], transform=ax.transAxes)
+    ax_in_ax = ax.inset_axes([0.87, 0.85, 0.2, 0.2], transform=ax.transAxes)
     ax_in_ax.imshow(qr)
     ax_in_ax.axis('off')
 
