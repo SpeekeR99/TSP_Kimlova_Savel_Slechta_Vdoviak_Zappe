@@ -115,7 +115,9 @@ def map_pages_to_students(collection, path_to_pdf):
     # Find the QR code
     first_page = pdf[0]
     qcd = cv2.QRCodeDetector()
-    qr_json, _, _ = qcd.detectAndDecode(first_page)
+    height, width, _ = first_page.shape
+    qr_subimage = first_page[:int(height*0.2), int(width*0.85):]
+    qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
 
@@ -137,7 +139,9 @@ def map_pages_to_students(collection, path_to_pdf):
         student_id = []
 
         qcd = cv2.QRCodeDetector()
-        qr_json, _, _ = qcd.detectAndDecode(page)
+        height, width, _ = page.shape
+        qr_subimage = first_page[:int(height * 0.2), int(width * 0.85):]
+        qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
         qr_json = json.loads(qr_json)
         page_num = qr_json["page"]
 
@@ -267,7 +271,9 @@ def preprocess_image(collection, path_to_image):
     # Find the QR code
     first_page = scanned_filled_images[0]
     qcd = cv2.QRCodeDetector()
-    qr_json, _, _ = qcd.detectAndDecode(first_page)
+    height, width, _ = first_page.shape
+    qr_subimage = first_page[:int(height * 0.2), int(width * 0.85):]
+    qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
 
