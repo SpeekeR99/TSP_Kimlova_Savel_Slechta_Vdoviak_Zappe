@@ -225,8 +225,6 @@ def map_pages_to_students(collection, path_to_pdf):
     for student_id, pages in result_student_page_ids.items():
         result_student_page_ids[student_id] = [list(page.values())[0] for page in pages]
 
-    print(result_student_page_ids)
-
     return result_student_page_ids
 
 

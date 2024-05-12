@@ -13,7 +13,6 @@ const fetchData = async (quizId) => {
 
 		if (response.ok) {
 			const data = await response.json()
-			console.log('Response:', data)
 		} else {
 			throw new Error(`Upload failed: ${response.statusText}`)
 		}
@@ -32,7 +31,8 @@ export const useGenerateFromMoodle = () => {
 		onSuccess: () => {
 			openSnackbar('Files generated succeesfully!')
 		},
-		onError: () => {
+		onError: (e) => {
+			console.error(e)
 			openSnackbar('Error while generating files!', 'error')
 		},
 	})
