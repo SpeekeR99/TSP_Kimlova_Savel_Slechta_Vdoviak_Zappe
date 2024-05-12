@@ -9,7 +9,7 @@ sys.path.append(os.path.join(os.getcwd(), ".."))
 
 from ai.src.generator.generator_handler import generate_sheets
 from ai.src.evaluator.preprocessor import map_pages_to_students, preprocess_image, create_temp_pdfs
-from ai.src.utils import transform_eval_output_to_moodle
+from ai.src.evaluator.evaluator import transform_eval_output
 
 
 #  Initialize the Flask app
@@ -110,7 +110,7 @@ def evaluate_answers():
 
             # Transform the output to a Moodle happy output
             db_data = collection.find_one({"test_id": test_id})
-            student_result = transform_eval_output_to_moodle(json_data, db_data)
+            student_result = transform_eval_output(json_data, db_data)
             result.append(student_result)
 
             os.remove(pdf)
