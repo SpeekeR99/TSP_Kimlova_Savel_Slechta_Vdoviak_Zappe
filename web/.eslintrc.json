@@ -25,6 +25,7 @@
 		"prefer-arrow-callback": "warn",
 		"prefer-const": "warn",
 		"prefer-destructuring": ["warn", { "object": true, "array": true }],
-		"max-len": ["warn", { "code": 100 }]
+		"max-len": ["warn", { "code": 100 }],
+		"@typescript-eslint/no-explicit-any": "off"
 	}
 }

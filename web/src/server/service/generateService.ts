@@ -59,7 +59,8 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 }
 
 export const generateArks = async (quiz: Quiz): Promise<Response> => {
-	const port = process.env.AI_API_PORT || 5000
+	const PORT = 5000
+	const port = process.env.AI_API_PORT || PORT
 	const host = process.env.AI_API_HOST || '127.0.0.1'
 	return await fetch(`http://${host}:${port}/get_print_data`, {
 		method: 'POST',

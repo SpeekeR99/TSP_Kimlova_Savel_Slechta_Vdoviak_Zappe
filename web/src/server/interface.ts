@@ -1,5 +1,4 @@
 import { Router } from 'express'
-import { MulterFile } from 'multer'
 
 export interface Route {
 	path: string

@@ -2,6 +2,7 @@ import { styled, Theme } from '@mui/material/styles'
 import MuiAppBar, { AppBarProps as MuiAppBarProps } from '@mui/material/AppBar'
 
 const drawerWidth = 240
+const PADDING_SPACING = 3
 
 export interface AppBarProps extends MuiAppBarProps {
 	open?: boolean
@@ -12,7 +13,7 @@ export const Main = styled('main', {
 })<{ open?: boolean }>(({ theme, open }) => ({
 	flexGrow: 1,
 	minWidth: '100%',
-	padding: theme.spacing(3),
+	padding: theme.spacing(PADDING_SPACING),
 	transition: theme.transitions.create('margin', {
 		easing: theme.transitions.easing.sharp,
 		duration: theme.transitions.duration.leavingScreen,
