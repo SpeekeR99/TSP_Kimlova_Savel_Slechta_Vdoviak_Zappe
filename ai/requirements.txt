@@ -11,3 +11,4 @@ pymongo
 qrcode
 pygments
 PyPDF2
+pyzbar

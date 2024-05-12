@@ -6,6 +6,7 @@ import pythreshold.utils as putils
 import imutils.contours
 import json
 from PyPDF2 import PdfReader, PdfWriter
+from pyzbar.pyzbar import decode
 
 from ai.src.evaluator.pdf_rotator import load_pdf
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
@@ -114,10 +115,9 @@ def map_pages_to_students(collection, path_to_pdf):
 
     # Find the QR code
     first_page = pdf[0]
-    qcd = cv2.QRCodeDetector()
     height, width, _ = first_page.shape
     qr_subimage = first_page[:int(height*0.2), int(width*0.85):]
-    qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
+    qr_json = decode(qr_subimage)[0].data.decode("utf-8")
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
 
@@ -138,10 +138,9 @@ def map_pages_to_students(collection, path_to_pdf):
     for pdf_page_index, page in enumerate(pdf):
         student_id = []
 
-        qcd = cv2.QRCodeDetector()
         height, width, _ = page.shape
         qr_subimage = first_page[:int(height * 0.2), int(width * 0.85):]
-        qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
+        qr_json = decode(qr_subimage)[0].data.decode("utf-8")
         qr_json = json.loads(qr_json)
         page_num = qr_json["page"]
 
@@ -270,10 +269,9 @@ def preprocess_image(collection, path_to_image):
 
     # Find the QR code
     first_page = scanned_filled_images[0]
-    qcd = cv2.QRCodeDetector()
     height, width, _ = first_page.shape
     qr_subimage = first_page[:int(height * 0.2), int(width * 0.85):]
-    qr_json, _, _ = qcd.detectAndDecode(qr_subimage)
+    qr_json = decode(qr_subimage)[0].data.decode("utf-8")
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
 
