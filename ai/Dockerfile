@@ -6,7 +6,7 @@ WORKDIR /ai
 
 # updates archive area
 RUN echo "deb http://deb.debian.org/debian bookworm contrib non-free" > /etc/apt/sources.list.d/contrib.list
-RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 ttf-mscorefonts-installer fontconfig
+RUN apt-get update && apt-get install -y ffmpeg libsm6 libxext6 ttf-mscorefonts-installer fontconfig libzbar0 -y
 
 # refresh system font cache
 RUN fc-cache -f -v
