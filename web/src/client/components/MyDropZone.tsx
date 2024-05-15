@@ -17,10 +17,11 @@ interface MyDropzoneProps {
 		[mimeType: string]: string[]
 	}
 	maxFiles: number
-	useAction: () => UseMutationResult
+	useAction: () => UseMutationResult,
+	valid: boolean
 }
 
-const MyDropzone = ({ accept, useAction, maxFiles }: MyDropzoneProps) => {
+const MyDropzone = ({ accept, useAction, maxFiles, valid }: MyDropzoneProps) => {
 	const { mutate, isLoading, isSuccess } = useAction()
 	const [files, setFiles] = useState<File[]>([])
 	const { setOpenBackDrop } = useBackDropContext()
@@ -151,7 +152,7 @@ const MyDropzone = ({ accept, useAction, maxFiles }: MyDropzoneProps) => {
 				</Box>
 				<Button
 					variant='contained'
-					disabled={files.length !== maxFiles}
+					disabled={files.length !== maxFiles || !valid}
 					onClick={() => mutate(files)}
 				>
 					Upload file

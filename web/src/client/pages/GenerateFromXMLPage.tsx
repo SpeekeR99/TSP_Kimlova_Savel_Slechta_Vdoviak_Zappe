@@ -10,8 +10,22 @@ import { AdapterDayjs } from '@mui/x-date-pickers/AdapterDayjs'
 import { Box } from '@mui/material'
 import 'dayjs/locale/en-gb'
 
+const MAX_YEAR = 2100
+
 const GenerateFromXMLPage = () => {
 	const [date, setDate] = useState<Dayjs | null>(dayjs(Date.now()))
+	const [isDateValid, setIsDateValid] = useState<boolean>(true)
+
+	const handleDateChange = (newDate: Dayjs | null) => {
+		const today = Date.now()
+		const dateValid =
+			newDate.isValid() &&
+			newDate.year() < MAX_YEAR &&
+			(newDate.isAfter(today) || newDate.isSame(today))
+
+		if (dateValid) setDate(newDate)
+		setIsDateValid(dateValid)
+	}
 
 	return (
 		<BaseLayout>
@@ -19,16 +33,19 @@ const GenerateFromXMLPage = () => {
 			<Box display='flex' justifyContent='flex-end'>
 				<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
 					<DatePicker
+						disablePast
 						label='Exam date'
 						value={date}
-						onChange={(newValue) => setDate(newValue)}
+						onChange={handleDateChange}
+						maxDate={dayjs().year(MAX_YEAR).startOf('year')}
 					/>
 				</LocalizationProvider>
 			</Box>
 			<MyDropzone
 				accept={{ 'application/xml': ['.xml'], 'text/csv': ['.csv'] }}
 				maxFiles={2}
-				useAction={() => useGenerateFromXML(date.toISOString())}
+				useAction={() => useGenerateFromXML(date)}
+				valid={isDateValid}
 			/>
 		</BaseLayout>
 	)

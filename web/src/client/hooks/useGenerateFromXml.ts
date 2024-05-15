@@ -2,6 +2,7 @@ import { useMutation } from 'react-query'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
+import { Dayjs } from 'dayjs'
 
 const fetchData = async (files: File[], date: string) => {
 	if (!files) throw new Error('Files not selected')
@@ -39,13 +40,13 @@ const fetchData = async (files: File[], date: string) => {
 	}
 }
 
-export const useGenerateFromXML = (date: string) => {
+export const useGenerateFromXML = (date: Dayjs) => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>
 		dispatch(setSnackbarOpen(message, severity))
 
-	return useMutation((files: File[]) => fetchData(files, date), {
+	return useMutation((files: File[]) => fetchData(files, date.toISOString()), {
 		onSuccess: () => {
 			openSnackbar('Files generated succeesfully!')
 		},
