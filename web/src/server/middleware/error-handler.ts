@@ -1,13 +1,9 @@
-import { Request, Response, NextFunction } from 'express'
+import { Request, Response } from 'express'
 import { CustomError } from '../interface'
+const SERVER_ERROR_CODE = 500
 
-const errorHandler = (
-	err: CustomError,
-	req: Request,
-	res: Response,
-	next: NextFunction
-): void => {
-	const statusCode: number = err.statusCode || 500
+const errorHandler = (err: CustomError, req: Request, res: Response): void => {
+	const statusCode: number = err.statusCode || SERVER_ERROR_CODE
 	res.status(statusCode).json({
 		errorMsg: `Caught an error: ${err.message}`,
 		errorData: err?.response?.data,

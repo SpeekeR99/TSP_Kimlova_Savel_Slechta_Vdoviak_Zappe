@@ -1,6 +1,5 @@
 import React from 'react'
 import { useTheme, Theme } from '@mui/material/styles'
-import Box from '@mui/material/Box'
 import Drawer from '@mui/material/Drawer'
 import CssBaseline from '@mui/material/CssBaseline'
 import Toolbar from '@mui/material/Toolbar'

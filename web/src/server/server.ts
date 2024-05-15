@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-var-requires */
+
 import express, { Express, NextFunction, Request, Response } from 'express'
 import dotenv from 'dotenv'
 import routes from './routes'
@@ -5,15 +7,19 @@ import { Route } from './interface'
 import errorHandler from './middleware/error-handler'
 import path from 'path'
 const DIST_DIR = path.resolve(__dirname, '../../')
+const PORT = 8080
+const CODE_OK = 200
 
 dotenv.config()
-const port = process.env.PORT || 8080
+const port = process.env.PORT || PORT
 const app: Express = express()
 
 app.use(express.json())
 
 const loadRoutes = () => {
-	app.use('/healthcheck', (req: Request, res: Response) => res.sendStatus(200))
+	app.use('/healthcheck', (req: Request, res: Response) =>
+		res.sendStatus(CODE_OK)
+	)
 	routes.forEach(({ path, router }: Route) => app.use(path, router))
 }
 
@@ -21,7 +27,7 @@ if (process.env.NODE_ENV === 'production') {
 	app.use(express.static(DIST_DIR))
 
 	loadRoutes()
-	app.get('*', (req: Request, res: Response, next: NextFunction) => {
+	app.get('*', (req: Request, res: Response) => {
 		res.sendFile(path.join(DIST_DIR, 'index.html'))
 	})
 } else {
