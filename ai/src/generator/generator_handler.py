@@ -151,20 +151,23 @@ def shuffled_questions(questions_list):
     return shuffle, shuffled_list
 
 
-def generate_sheets(collection, questions_json, students_json):
+def generate_sheets(collection, questions_json, students_json, date):
     """
     Generate bubble sheets and question papers for the students
     :param collection: DB collection
     :param questions_json: Questions JSON (from the request)
     :param students_json: Students JSON (from the request)
+    :param date: Date of the test
     """
     students, questions = preprocess_data(students_json, questions_json)
     test_id = uuid.uuid4().hex
     test_length = len(questions)
 
     for student in students:
+        student_name = student.name + " " + student.surname
+
         # generate bubble sheet with unique id for every student
-        generate_bubble_sheet(test_id, student.id, test_length)
+        generate_bubble_sheet(test_id, student.id, test_length, date, student_name)
 
         # generate question paper with unique set of questions
         shuffle, student_questions = shuffled_questions(questions)
@@ -175,7 +178,7 @@ def generate_sheets(collection, questions_json, students_json):
         for question in student_questions:
             answers_text.append([answer["text"] for answer in question.answers])
 
-        generate_question_paper(student.id, questions_text, answers_text)
+        generate_question_paper(student.id, questions_text, answers_text, date, student_name)
 
     # Save the data to the database
     collection.insert_one(
@@ -188,7 +191,7 @@ def generate_sheets(collection, questions_json, students_json):
     )
 
     # Generate one student-less bubble sheet
-    generate_bubble_sheet(test_id, "empty", test_length)
+    generate_bubble_sheet(test_id, "empty", test_length, date, "")
 
     pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
     pdfs_a = ["generated_pdfs/empty_bubble_sheet.pdf"] + [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]

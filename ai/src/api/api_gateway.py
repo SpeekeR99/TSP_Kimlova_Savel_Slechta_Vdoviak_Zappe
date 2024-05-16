@@ -69,7 +69,13 @@ def get_data():
 
         questions = data["questions"]
         students = data["students"]
-        generate_sheets(collection, questions, students)
+        date = data["date"]
+
+        # ISO string date to DD.MM.YYYY
+        date = date.split("T")[0].split("-")
+        date = f"{date[2]}. {date[1]}. {date[0]}"
+
+        generate_sheets(collection, questions, students, date)
 
         pdf_files = ["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
         zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")
