@@ -2,15 +2,20 @@ import { useMutation } from 'react-query'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
+import { Dayjs } from 'dayjs'
 
-const fetchData = async (files: File[]) => {
+const fetchData = async (files: File[], date: string) => {
 	if (!files) throw new Error('Files not selected')
 	if (files.length !== 2) throw new Error('Generation needs 2 files!')
+	if (!date) throw new Error('Date not present!')
+
 	const formData = new FormData()
 
 	files.forEach((file) => {
 		formData.append('files', file)
 	})
+
+	formData.append('date', date)
 
 	try {
 		const response = await fetch('/0/generate/from-xml', {
@@ -35,13 +40,13 @@ const fetchData = async (files: File[]) => {
 	}
 }
 
-export const useGenerateFromXML = () => {
+export const useGenerateFromXML = (date: Dayjs) => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>
 		dispatch(setSnackbarOpen(message, severity))
 
-	return useMutation(fetchData, {
+	return useMutation((files: File[]) => fetchData(files, date.toISOString()), {
 		onSuccess: () => {
 			openSnackbar('Files generated succeesfully!')
 		},

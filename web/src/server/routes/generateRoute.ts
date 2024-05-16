@@ -25,7 +25,9 @@ router.post(
 	upload.array('files'),
 	catchError(async (req: Request & { files: MulterFile[] }, res: Response) => {
 		const { files } = req
+		const { date } = req.body
 		if (!files) throw new Error('Files are not present!')
+		if (!date) throw new Error('Date not present!')
 
 		const quiz: Quiz = await files.reduce(
 			async (accPromise, file: MulterFile): Promise<Quiz> => {
@@ -40,6 +42,7 @@ router.post(
 			Promise.resolve({})
 		)
 
+		quiz.date = date
 		const response = await generateArks(quiz)
 
 		if (!response.ok) throw new Error('Failed to fetch file content')
