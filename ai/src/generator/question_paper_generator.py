@@ -193,9 +193,6 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         # If question with answers does not fit in the page
         lines = wrap_text(question, letter[0] - 3 * x_margin, "Arial", 12)
         overall_height = len(lines) * label_height
-        for answer in answers:
-            lines += wrap_text(answer, letter[0] - 3 * x_margin, "Arial", 12)
-            overall_height += len(lines) * label_height
         if code_part:
             code_lines = wrap_text(code_part, letter[0] - 3 * x_margin, "Arial", 12)
             overall_height += len(code_lines) * label_height
@@ -210,8 +207,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             y -= y_spacing
 
         question_number = "Otázka " + str(i + 1)
-        c.drawString(x, y, question_number + ": ")
-        x += c.stringWidth(question_number + ": ", "Arial", 12)
+        question = question_number + ": " + question
 
         # Question may have code in it
         if code_part:
@@ -232,6 +228,9 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             # Set font to Arial 12
             highlighted_code = highlighted_code.replace("font-family=\"monospace\"", "font-family=\"Arial\"")
             highlighted_code = highlighted_code.replace("font-size=\"14px\"", "font-size=\"12\"")
+
+            # Find any <text> tags and set the font to Arial 12
+            highlighted_code = highlighted_code.replace("<text", "<text font-family=\"Arial\" font-size=\"12\"")
 
             # Add size to the svg
             height_overall = len(code_part.split("\n")) * label_height
@@ -331,7 +330,20 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
                 y -= label_height
                 x = x_margin
 
-        y -= y_spacing
+        answers_height = 0
+        for j, answer in enumerate(answers):
+            question_letter = chr(65 + j) + "."
+            lines = wrap_text(question_letter + " " + answer, letter[0] - 3 * x_margin, "Arial", 12)
+            answers_height += len(lines) * label_height
+
+        if y - answers_height < y_margin / 2:
+            # Draw page number before starting a new page
+            c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
+            y = letter[1] - y_margin
+            c.showPage()
+            c.setFont("Arial", 12)
+            c.line(x, y + 10, letter[0] - x_margin, y + 10)
+            y -= y_spacing
 
         for j, answer in enumerate(answers):
             x_answer = x + 20
