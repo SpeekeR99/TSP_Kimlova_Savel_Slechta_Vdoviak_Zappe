@@ -16,20 +16,22 @@ matplotlib.use("Agg")
 question_number = 1
 
 
-def draw_header(ax, config, rect_x, rect_y):
+def draw_header(ax, config, rect_x, rect_y, date, student_name):
     """
     Draw the header of the bubble sheet
     :param ax: The axis to draw the rectangle on
     :param config: Configuration dictionary
     :param rect_x: The x-coordinate of the rectangle top left corner
     :param rect_y: The y-coordinate of the rectangle top left corner
+    :param date: Date of the test
+    :param student_name: Student name
     """
     PIXELS_PER_INCH = 96
 
     # Configuration
     header_title = config["header"]["title"]
-    header_date = config["header"]["date"]
-    header_name = config["header"]["name"]
+    header_date = config["header"]["date"] + date
+    header_name = config["header"]["name"] + student_name
     font_size = config["header"]["font_size"]
     font_size_relative = font_size / (ax.figure.get_figheight() * PIXELS_PER_INCH)
     font = config["header"]["font"]
@@ -41,10 +43,10 @@ def draw_header(ax, config, rect_x, rect_y):
     ax.text(rect_x, rect_y, header_title, ha='left', va='bottom', fontsize=font_size + 5, fontname=font,
             color=text_color, weight='bold')
     font_size_offset = font_size_relative * 2
-    ax.text(rect_x, rect_y - font_size_offset, header_date, ha='left', va='bottom', fontsize=font_size, fontname=font,
+    ax.text(rect_x, rect_y - font_size_offset, header_name, ha='left', va='bottom', fontsize=font_size, fontname=font,
             color=text_color)
     font_size_offset = font_size_relative * 4
-    ax.text(rect_x, rect_y - font_size_offset, header_name, ha='left', va='bottom', fontsize=font_size, fontname=font,
+    ax.text(rect_x, rect_y - font_size_offset, header_date, ha='left', va='bottom', fontsize=font_size, fontname=font,
             color=text_color)
 
 
@@ -270,7 +272,7 @@ def draw_rect(ax, config, rect_x, rect_y, rect_type="answer_rect", gray_columns=
     draw_labels(ax, config, rect_x, rect_y, rect_type, last_rect_q=last_rect_q)
 
 
-def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q):
+def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q, date, student_name):
     """
     Draw a page of the bubble sheet
     :param ax: Axis to draw the page on
@@ -282,6 +284,8 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
     :param num_of_rects_in_page: Number of rectangles in each page
     :param offset_between_rect: Offset between rectangles
     :param last_rect_q: Number of questions in the last rectangle
+    :param date: Date of the test
+    :param student_name: Student name
     """
     # Define the Student ID field
     x = config["student_id_rect"]["x"]
@@ -305,7 +309,7 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
     ax_in_ax.axis('off')
 
     # Draw the header
-    draw_header(ax, config, x, 1 - y)
+    draw_header(ax, config, x, 1 - y, date, student_name)
 
     # Define answers fields
     x += config["student_id_rect"]["width"] + 2 * offset_between_rect
@@ -323,12 +327,14 @@ def draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_
         x += config["answer_rect"]["width"] + 1.5 * offset_between_rect
 
 
-def generate_bubble_sheet(test_id, student_id, num_of_q):
+def generate_bubble_sheet(test_id, student_id, num_of_q, date, student_name):
     """
     Main function to generate the bubble sheet
     :param test_id: Test ID
     :param student_id: Student ID (number from 0 to 9999)
     :param num_of_q: Number of questions
+    :param date: Date of the test
+    :param student_name: Student name
     """
     global question_number
     question_number = 1
@@ -365,7 +371,7 @@ def generate_bubble_sheet(test_id, student_id, num_of_q):
         # Set the aspect of the plot to be equal
         ax.set_aspect('equal', adjustable='datalim')
 
-        draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q)
+        draw_page(ax, config, test_id, student_id, page, num_of_pages, num_of_rects_in_page, offset_between_rect, last_rect_q, date, student_name)
 
         # Turn off the axis but keep the frame
         ax.axis("off")

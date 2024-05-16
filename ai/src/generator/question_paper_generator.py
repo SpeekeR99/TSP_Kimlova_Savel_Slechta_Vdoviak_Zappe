@@ -137,7 +137,7 @@ def upscale_svg(svg_file_path, scale_factor):
     tree.write(svg_file_path)
 
 
-def draw_labels(student_id, student_questions, question_answers, filename):
+def draw_labels(student_id, student_questions, question_answers, filename, date, student_name):
     c = canvas.Canvas(filename, pagesize=letter)
 
     font_file = os.path.join(os.path.dirname(os.path.realpath(__file__)), "../../res/fonts/arial", "Arial.ttf")
@@ -159,6 +159,10 @@ def draw_labels(student_id, student_questions, question_answers, filename):
     # Draw student_id labels
     x = x_margin
     y = letter[1] - y_margin - 50
+    c.drawString(x, y, "Jméno: " + student_name)
+    y -= label_height
+    c.drawString(x, y, "Datum: " + date)
+    y -= label_height
     c.drawString(x, y, "ID studenta: " + str(student_id))
     y -= (label_height + y_spacing)
 
@@ -344,6 +348,6 @@ def draw_labels(student_id, student_questions, question_answers, filename):
     c.save()
 
 
-def generate_question_paper(student_id, student_questions, question_answers):
+def generate_question_paper(student_id, student_questions, question_answers, date, student_name):
     file_path = 'generated_pdfs/' + str(student_id) + '_question_paper.pdf'
-    draw_labels(student_id, student_questions, question_answers, file_path)
+    draw_labels(student_id, student_questions, question_answers, file_path, date, student_name)
