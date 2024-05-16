@@ -11,6 +11,7 @@ const MainPage = () => (
 			accept={{ 'application/pdf': ['.pdf'] }}
 			maxFiles={1}
 			useAction={useUploadArks}
+			valid={true}
 		/>
 	</BaseLayout>
 )

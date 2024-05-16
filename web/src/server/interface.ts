@@ -31,4 +31,5 @@ export interface Student {
 export interface Quiz {
 	questions: Question[]
 	students: Student[]
+	date: string
 }
