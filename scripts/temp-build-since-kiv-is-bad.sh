@@ -15,7 +15,7 @@ build_and_push_image() {
 	
 	echo "Building image: $image_name"
 	docker build -t "$image_name" .
-	docker build --platform linux/amd64,linux/arm64 -t "$image_name" .
+	docker build --platform linux/amd64 -t "$image_name" .
 	
 	echo "Pushing image: $image_name"
 	docker push "$image_name"
