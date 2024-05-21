@@ -98,30 +98,7 @@ def preprocess_data(students_json, questions_json):
 
     questions = []
     for question in questions_json:
-        substr_1 = "<p"
-        substr_2 = ">"
-        substr_3 = "</p>"
-        # Find "<p" and remove the html up to the next ">" and the "</p>"
-        name = question["name"][0]
-        if substr_1 in name:
-            name = name[name.find(substr_1) + len(substr_1):]
-            name = name[name.find(substr_2) + len(substr_2):]
-            name = name[:name.find(substr_3)]
-
-        text = question["text"]
-        if substr_1 in text:
-            text = text[text.find(substr_1) + len(substr_1):]
-            text = text[text.find(substr_2) + len(substr_2):]
-            text = text[:text.find(substr_3)] + text[text.find(substr_3) + len(substr_3):]
-
-        answers = question["answers"]
-        for answer in answers:
-            if substr_1 in answer["text"]:
-                answer["text"] = answer["text"][answer["text"].find(substr_1) + len(substr_1):]
-                answer["text"] = answer["text"][answer["text"].find(substr_2) + len(substr_2):]
-                answer["text"] = answer["text"][:answer["text"].find(substr_3)]
-
-        questions.append(Question(question["id"], question["type"], name, text, answers, question["defaultGrade"], question["penalty"]))
+        questions.append(Question(question["id"], question["type"], question["name"][0], question["text"], question["answers"], question["defaultGrade"], question["penalty"]))
 
     return students, questions
 
