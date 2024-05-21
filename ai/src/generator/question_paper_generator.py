@@ -26,7 +26,7 @@ def latex_to_img(latex_str, font_size=12):
 
     # Save the figure to a temporary file
     temp_file = "temp" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + ".png"
-    fig.savefig(temp_file, bbox_inches='tight', pad_inches=0.0, transparent=True)
+    fig.savefig(temp_file, bbox_inches='tight', pad_inches=0.1, transparent=True)
 
     # Close the figure
     plt.close(fig)
@@ -34,7 +34,7 @@ def latex_to_img(latex_str, font_size=12):
     return temp_file
 
 
-def wrap_text(text, max_width, font, font_size):
+def wrap_text(text, max_width, font, font_size, first_width=None):
     paragraphs = text.split('\n')
     lines = []
     for paragraph in paragraphs:
@@ -46,7 +46,8 @@ def wrap_text(text, max_width, font, font_size):
 
         for word in words:
             word_width = pdfmetrics.stringWidth(word, font, font_size)
-            if current_width + word_width <= max_width:
+            line_width = max_width - first_width if (first_width is not None and len(lines) == 0) else max_width
+            if current_width + word_width <= line_width:
                 current_line.append(word)
                 current_width += word_width
             else:
@@ -207,7 +208,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             y -= y_spacing
 
         question_number = "Otázka " + str(i + 1)
-        question = question_number + ": " + question
+        question = question_number + ": " + question.replace("$$", "$")
 
         # Question may have code in it
         if code_part:
@@ -280,22 +281,18 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             char_index = 0
             question_text = ""
             # Char stream
-            x_so_far = c.stringWidth(question_number + ": ", "Arial", 12)
+            x_so_far = x
             while char_index < len(question):
                 current_char = question[char_index]
                 if current_char == "$":
                     # First draw the text so far
-                    lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+                    lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
                     for line in lines:
-                        c.drawString(x, y, line)
+                        c.drawString(x_so_far, y, line)
                         y -= label_height
-                        x = x_margin
-                    if len(lines) == 1:
-                        y += label_height
-                        x_so_far += c.stringWidth(lines[0], "Arial", 12)
-                        x += x_so_far
-                    else:
-                        x_so_far = x
+                        x_so_far = x_margin
+                    y += label_height
+                    x_so_far += c.stringWidth(lines[-1], "Arial", 12)
                     question_text = ""
 
                     # Find the end of the math expression
@@ -310,12 +307,15 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
                     height, width = img.shape[:2]
                     new_height = height / 14
                     new_width = width / 14
-                    x_so_far += new_width
 
                     # Draw the image
-                    c.drawImage(latex, x, y - new_height / 2.5, width=new_width, height=new_height)
-                    x += new_width
+                    c.drawImage(latex, x_so_far, y - new_height / 4, width=new_width, height=new_height)
                     os.remove(latex)
+
+                    x_so_far += new_width
+                    if x_so_far > letter[0] - 3 * x_margin:
+                        x_so_far = x_margin
+                        y -= label_height
 
                     # Update the char index
                     char_index = end_index + 1
@@ -324,16 +324,17 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
                     char_index += 1
 
             # Draw the remaining text
-            lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
+            lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
             for line in lines:
-                c.drawString(x, y, line)
+                c.drawString(x_so_far, y, line)
                 y -= label_height
                 x = x_margin
+                x_so_far = x
 
         answers_height = 0
         for j, answer in enumerate(answers):
-            question_letter = chr(65 + j) + "."
-            lines = wrap_text(question_letter + " " + answer, letter[0] - 3 * x_margin, "Arial", 12)
+            answer_letter = chr(65 + j) + "."
+            lines = wrap_text(answer_letter + " " + answer, letter[0] - 3 * x_margin, "Arial", 12)
             answers_height += len(lines) * label_height
 
         if y - answers_height < y_margin / 2:
@@ -347,11 +348,63 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
 
         for j, answer in enumerate(answers):
             x_answer = x + 20
-            question_letter = chr(65 + j) + "."
-            lines = wrap_text(question_letter + " " + answer, letter[0] - 3 * x_margin, "Arial", 12)
+            answer_letter = chr(65 + j) + "."
+            answer = answer_letter + " " + answer.replace("$$", "$")
+
+            # Answer may have LaTeX math in it
+            char_index = 0
+            answer_text = ""
+            x_so_far = x_answer
+
+            # Char stream
+            while char_index < len(answer):
+                current_char = answer[char_index]
+                if current_char == "$":
+                    # First draw the text so far
+                    lines = wrap_text(answer_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
+                    for line in lines:
+                        c.drawString(x_so_far, y, line)
+                        y -= label_height
+                        x_so_far = x_answer
+                    y += label_height
+                    x_so_far += c.stringWidth(lines[-1], "Arial", 12)
+                    answer_text = ""
+
+                    # Find the end of the math expression
+                    answer_substr = answer[char_index:]
+                    end_index = answer_substr.find("$", 1) + char_index
+                    # Add the math expression to the answer text
+                    latex_text = answer[char_index + 1:end_index]
+                    latex = latex_to_img(latex_text, font_size=120)
+
+                    # Get the dimensions of the image
+                    img = plt.imread(latex)
+                    height, width = img.shape[:2]
+                    new_height = height / 14
+                    new_width = width / 14
+
+                    # Draw the image
+                    c.drawImage(latex, x_so_far, y - new_height / 4, width=new_width, height=new_height)
+                    os.remove(latex)
+
+                    x_so_far += new_width
+                    if x_so_far > letter[0] - 3 * x_margin:
+                        x_so_far = x_answer
+                        y -= label_height
+
+                    # Update the char index
+                    char_index = end_index + 1
+                else:
+                    answer_text += current_char
+                    char_index += 1
+
+            # Draw the remaining text
+            lines = wrap_text(answer_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
             for line in lines:
-                c.drawString(x_answer, y, line)
+                c.drawString(x_so_far, y, line)
                 y -= label_height
+                x_answer = x + 20
+                x_so_far = x_answer
 
     # Draw page number on the last page
     c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
