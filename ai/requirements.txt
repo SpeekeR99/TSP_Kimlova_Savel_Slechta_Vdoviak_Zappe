@@ -12,3 +12,4 @@ qrcode
 pygments
 PyPDF2
 pyzbar
+beautifulsoup4

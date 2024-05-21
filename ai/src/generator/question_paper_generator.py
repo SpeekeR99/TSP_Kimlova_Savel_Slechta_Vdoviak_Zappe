@@ -12,6 +12,7 @@ import fitz
 from PIL import Image
 import numpy as np
 import xml.etree.ElementTree as ET
+from bs4 import BeautifulSoup
 
 
 def latex_to_img(latex_str, font_size=12):
@@ -64,15 +65,8 @@ def wrap_text(text, max_width, font, font_size, first_width=None):
 
 def html_strip(html):
     # Remove HTML tags
-    stripped = ""
-    in_tag = False
-    for char in html:
-        if char == "<":
-            in_tag = True
-        elif char == ">":
-            in_tag = False
-        elif not in_tag:
-            stripped += char
+    soup = BeautifulSoup(html, "html.parser")
+    stripped = soup.get_text()
 
     stripped = replace_html_entities(stripped)
     stripped = stripped.encode("utf-8").decode("utf-8")
@@ -170,9 +164,11 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
     # draw questions labels
     for i in range(len(student_questions)):
         question = student_questions[i]
+        print(question) if "factorial" in question else None
         answers = question_answers[i]
 
         question = question.replace("<br>", "\n")
+        print(question) if "factorial" in question else None
         code_part = None
 
         if contains_code(question):
@@ -235,7 +231,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
 
             # Add size to the svg
             height_overall = len(code_part.split("\n")) * label_height
-            width_max = np.max([pdfmetrics.stringWidth(line, "Arial", 12) for line in code_part.split("\n")])
+            width_max = 1.05 * np.max([pdfmetrics.stringWidth(line, "Arial", 12) for line in code_part.split("\n")])
             highlighted_code = highlighted_code.replace("<svg", f"<svg width='{width_max}' height='{height_overall}'")
 
             filename = "temp" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + ".svg"
