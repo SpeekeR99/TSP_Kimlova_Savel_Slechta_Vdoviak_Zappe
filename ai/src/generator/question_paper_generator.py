@@ -164,11 +164,9 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
     # draw questions labels
     for i in range(len(student_questions)):
         question = student_questions[i]
-        print(question) if "factorial" in question else None
         answers = question_answers[i]
 
         question = question.replace("<br>", "\n")
-        print(question) if "factorial" in question else None
         code_part = None
 
         if contains_code(question):
