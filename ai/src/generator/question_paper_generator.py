@@ -402,8 +402,12 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
 
     # Draw page number on the last page
     c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
-
     c.showPage()
+
+    # Check if the last page was even or odd (if odd, add a blank page)
+    if c.getPageNumber() % 2 == 0:
+        c.showPage()
+
     c.save()
 
 
