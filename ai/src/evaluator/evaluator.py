@@ -1,3 +1,6 @@
+import numpy as np
+
+
 def transform_eval_output(json_data, db_data):
     """
     Transform the evaluation output to a Moodle happy output
@@ -28,6 +31,8 @@ def transform_eval_output(json_data, db_data):
     for obj in shuffle:
         question_undo_shuffle.append(obj["question"])
         answers_undo_shuffles.append(obj["answers"])
+    question_undo_shuffle = np.argsort(question_undo_shuffle)
+    answers_undo_shuffles = [np.argsort(answers) for answers in answers_undo_shuffles]
 
     unshuffled_answer_arrays = [student_answers[i] for i in question_undo_shuffle]
     answers_undo_shuffles = [answers_undo_shuffles[i] for i in question_undo_shuffle]
@@ -51,17 +56,21 @@ def transform_eval_output(json_data, db_data):
         obj = {"question": {"name": question["name"], "text": question["text"]}, "answer": []}
         for j, answer in enumerate(answers):
             if answer == 1:
-                obj["answer"].append(correct_answers[j]["text"])
-                fraction += float(correct_answers[j]["fraction"])
+                try:
+                    obj["answer"].append(chr(65 + j))
+                    # obj["answer"].append(correct_answers[j]["text"])
+                    fraction += float(correct_answers[j]["fraction"])
+                except IndexError:
+                    pass
 
-        question_points *= (fraction / 100)
+        question_points *= np.round((fraction / 100), 2)
         points += question_points
         obj["points"] = question_points
 
         result["result"].append(obj)
 
-    result["body"] = points
+    result["body"] = np.round(points, 2)
     result["body_celkem"] = overall_points
-    result["body_rel"] = round(points / overall_points, 2)
+    result["body_rel"] = np.round(points / overall_points, 2)
 
     return result
