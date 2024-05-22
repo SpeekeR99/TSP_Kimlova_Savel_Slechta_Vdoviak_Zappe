@@ -7,6 +7,7 @@ import imutils.contours
 import json
 from PyPDF2 import PdfReader, PdfWriter
 from pyzbar.pyzbar import decode
+from deskew import determine_skew
 
 from ai.src.evaluator.pdf_rotator import load_pdf
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
@@ -104,6 +105,14 @@ def find_edges(image):
     return edges
 
 
+def rotate_img(image, angle):
+    h, w = image.shape[:2]
+    cX, cY = (w//2, h//2)
+    M = cv2.getRotationMatrix2D((cX, cY), angle, 1)
+    rotated = cv2.warpAffine(image, M, (w, h), flags=cv2.INTER_LINEAR)
+    return rotated
+
+
 def map_pages_to_students(collection, path_to_pdf):
     # Load the configuration file
     config = load_config()
@@ -137,6 +146,11 @@ def map_pages_to_students(collection, path_to_pdf):
     student_page_ids = {}
 
     for pdf_page_index, page in enumerate(pdf):
+        skew_detect_img = page[:int(page.shape[0] * 0.5), :int(page.shape[1] * 0.5)]
+        angle = determine_skew(skew_detect_img)
+        if angle != 0:
+            page = rotate_img(page, angle)
+
         student_id = []
 
         height, width, _ = page.shape
@@ -329,6 +343,12 @@ def preprocess_image(collection, path_to_image):
     first_k = 0
     for indx, scanned_filled in enumerate(scanned_filled_images):
         subimages.append([])
+
+        skew_detect_img = scanned_filled[:int(scanned_filled.shape[0] * 0.5), :int(scanned_filled.shape[1] * 0.5)]
+        angle = determine_skew(skew_detect_img)
+        if angle != 0:
+            scanned_filled = rotate_img(scanned_filled, angle)
+
         # Convert the image to grayscale and threshold it
         gray_filled = cv2.cvtColor(scanned_filled, cv2.COLOR_RGB2GRAY)
         threshed_filled = threshold_otsu(gray_filled, 170)
