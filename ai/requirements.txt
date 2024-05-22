@@ -13,3 +13,4 @@ pygments
 PyPDF2
 pyzbar
 beautifulsoup4
+deskew

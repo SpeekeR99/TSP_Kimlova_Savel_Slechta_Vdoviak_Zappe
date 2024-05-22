@@ -150,7 +150,7 @@ def generate_sheets(collection, questions_json, students_json, date):
         shuffle, student_questions = shuffled_questions(questions)
         student.shuffle = shuffle
 
-        questions_text = [str(question.name + "\n" + question.text) for question in student_questions]
+        questions_text = [f"({int(float(question.default_grade))}b) {question.name}\n{question.text}" for question in student_questions]
         answers_text = []
         for question in student_questions:
             answers_text.append([answer["text"] for answer in question.answers])
