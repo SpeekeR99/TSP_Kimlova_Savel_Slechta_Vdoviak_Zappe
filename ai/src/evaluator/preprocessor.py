@@ -116,7 +116,8 @@ def map_pages_to_students(collection, path_to_pdf):
     # Find the QR code
     first_page = pdf[0]
     height, width, _ = first_page.shape
-    qr_subimage = first_page[:int(height*0.2), int(width*0.85):]
+    qr_subimage = first_page[:int(height*0.2), int(width*0.8):]
+    qr_subimage = cv2.medianBlur(qr_subimage, 5)
     qr_json = decode(qr_subimage)[0].data.decode("utf-8")
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
@@ -139,7 +140,8 @@ def map_pages_to_students(collection, path_to_pdf):
         student_id = []
 
         height, width, _ = page.shape
-        qr_subimage = page[:int(height * 0.2), int(width * 0.85):]
+        qr_subimage = page[:int(height * 0.2), int(width * 0.8):]
+        qr_subimage = cv2.medianBlur(qr_subimage, 5)
         qr_json = decode(qr_subimage)[0].data.decode("utf-8")
         qr_json = json.loads(qr_json)
         page_num = qr_json["page"]
@@ -270,7 +272,8 @@ def preprocess_image(collection, path_to_image):
     # Find the QR code
     first_page = scanned_filled_images[0]
     height, width, _ = first_page.shape
-    qr_subimage = first_page[:int(height * 0.2), int(width * 0.85):]
+    qr_subimage = first_page[:int(height * 0.2), int(width * 0.8):]
+    qr_subimage = cv2.medianBlur(qr_subimage, 5)
     qr_json = decode(qr_subimage)[0].data.decode("utf-8")
     qr_json = json.loads(qr_json)
     test_id = qr_json["test_id"]
