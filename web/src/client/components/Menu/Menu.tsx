@@ -11,6 +11,9 @@ import ChevronLeftIcon from '@mui/icons-material/ChevronLeft'
 import ChevronRightIcon from '@mui/icons-material/ChevronRight'
 import MenuItems from './MenuItems'
 import { AppBar, DrawerHeader } from './styles'
+import { useThemeContext } from '../../hooks/useThemeContext'
+import MenuSwitch from './MenuSwitch'
+import { DARK_MODE } from '../../context/themeContext/const'
 
 const drawerWidth = 240
 
@@ -24,24 +27,29 @@ interface MenuProps {
 	setOpen: (boolean) => void
 }
 
-const Header = ({ open, handleDrawerOpen }: HeaderProps) => (
-	<AppBar open={open} sx={{ height: '8vh' }}>
-		<Toolbar>
-			<IconButton
-				color='inherit'
-				aria-label='open drawer'
-				onClick={handleDrawerOpen}
-				edge='start'
-				sx={{ mr: 2, ...(open && { display: 'none' }) }}
-			>
-				<MenuIcon />
-			</IconButton>
-			<Typography variant='h5' component='div' sx={{ flexGrow: 1 }}>
-				ADT exam tool
-			</Typography>
-		</Toolbar>
-	</AppBar>
-)
+const Header = ({ open, handleDrawerOpen }: HeaderProps) => {
+	const { themeMode, toggleTheme } = useThemeContext()
+
+	return (
+		<AppBar open={open} sx={{ height: '8vh' }}>
+			<Toolbar>
+				<IconButton
+					color='inherit'
+					aria-label='open drawer'
+					onClick={handleDrawerOpen}
+					edge='start'
+					sx={{ mr: 2, ...(open && { display: 'none' }) }}
+				>
+					<MenuIcon />
+				</IconButton>
+				<Typography variant='h5' component='div' sx={{ flexGrow: 1 }}>
+					ADT exam tool
+				</Typography>
+				<MenuSwitch onChange={toggleTheme} checked={themeMode === DARK_MODE} />
+			</Toolbar>
+		</AppBar>
+	)
+}
 
 const Menu = ({ open, setOpen }: MenuProps) => {
 	const theme: Theme = useTheme()

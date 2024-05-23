@@ -11,21 +11,29 @@ import { UseMutationResult } from 'react-query'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { SnackbarContextType } from '../context/snackbarContext/interface'
 import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
+import { useThemeContext } from '../hooks/useThemeContext'
+import { DARK_MODE } from '../context/themeContext/const'
 
 interface MyDropzoneProps {
 	accept: {
 		[mimeType: string]: string[]
 	}
 	maxFiles: number
-	useAction: () => UseMutationResult,
+	useAction: () => UseMutationResult
 	valid: boolean
 }
 
-const MyDropzone = ({ accept, useAction, maxFiles, valid }: MyDropzoneProps) => {
+const MyDropzone = ({
+	accept,
+	useAction,
+	maxFiles,
+	valid,
+}: MyDropzoneProps) => {
 	const { mutate, isLoading, isSuccess } = useAction()
 	const [files, setFiles] = useState<File[]>([])
 	const { setOpenBackDrop } = useBackDropContext()
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
+	const { themeMode } = useThemeContext()
 	const openSnackbar = (message: string, severity: string = 'success') =>
 		dispatch(setSnackbarOpen(message, severity))
 
@@ -46,10 +54,9 @@ const MyDropzone = ({ accept, useAction, maxFiles, valid }: MyDropzoneProps) => 
 		const lastDotIndex = fileName.lastIndexOf('.')
 		const name = fileName.substring(0, lastDotIndex)
 		const ext = fileName.substring(lastDotIndex)
-	
+
 		return { name, ext }
 	}
-	
 
 	const onDropAccepted = (acceptedFiles: File[]) => {
 		const newFiles = [...files]
@@ -81,14 +88,15 @@ const MyDropzone = ({ accept, useAction, maxFiles, valid }: MyDropzoneProps) => 
 		maxFiles,
 	})
 
+	const dropZoneColor = themeMode === DARK_MODE ? 'white' : '#0c4b63'
 	return (
 		<Container maxWidth='sm'>
 			<Box
 				height='30vh'
 				marginTop='15%'
-				border='dashed 2px #0c4b63'
+				border={`dashed 2px ${dropZoneColor}`}
 				borderRadius='10px'
-				sx={{ bgcolor: '#daeff7' }}
+				sx={{ bgcolor: themeMode === DARK_MODE ? '#272727' : '#daeff7' }}
 				alignContent='center'
 				textAlign='center'
 				marginBottom='2%'
@@ -96,12 +104,12 @@ const MyDropzone = ({ accept, useAction, maxFiles, valid }: MyDropzoneProps) => 
 			>
 				<input {...getInputProps()} />
 				{isDragActive ? (
-					<Typography variant='h6' color='#0c4b63'>
+					<Typography variant='h6' color={dropZoneColor}>
 						Drop the files here ...
 					</Typography>
 				) : (
 					<>
-						<Typography variant='h6' color='#0c4b63'>
+						<Typography variant='h6' color={dropZoneColor}>
 							Drag 'n' drop or select your file...
 						</Typography>
 						<em>
