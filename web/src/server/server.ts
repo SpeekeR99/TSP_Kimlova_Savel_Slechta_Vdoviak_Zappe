@@ -54,6 +54,8 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(errorHandler)
 
-app.listen(port, () => {
+const server = app.listen(port, () => {
 	console.log(`[server] listening on http://localhost:${port}`)
 })
+
+export default server
