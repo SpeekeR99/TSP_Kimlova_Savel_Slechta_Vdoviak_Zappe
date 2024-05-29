@@ -13,6 +13,7 @@ from PIL import Image
 import numpy as np
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+import re
 
 
 def latex_to_img(latex_str, font_size=12):
@@ -93,15 +94,13 @@ def replace_html_entities(text):
 
 
 def contains_code(text):
-    code_start = text.find("<pre>")
-    code_end = text.find("</pre>")
-    return code_start != -1 and code_end != -1
+    code = re.search(r'<pre.*?>(.*?)</pre>', text, re.DOTALL)
+    return code is not None
 
 
 def get_code_substring(text):
-    code_start = text.find("<pre>")
-    code_end = text.find("</pre>")
-    return text[code_start:code_end + len("</pre>")]
+    code = re.search(r'<pre.*?>(.*?)</pre>', text, re.DOTALL).group(1)
+    return code
 
 
 def upscale_svg(svg_file_path, scale_factor):
