@@ -165,7 +165,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         question = student_questions[i]
         answers = question_answers[i]
 
-        question = question.replace("<br>", "\n")
+        question = question.replace("<br>", "\n").replace("\r", "")
         code_part = None
 
         if contains_code(question):
@@ -342,7 +342,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         for j, answer in enumerate(answers):
             x_answer = x + 20
             answer_letter = chr(65 + j) + "."
-            answer = answer_letter + " " + answer.replace("$$", "$")
+            answer = answer_letter + " " + answer.replace("$$", "$").replace("\r", "")
 
             # Answer may have LaTeX math in it
             char_index = 0
