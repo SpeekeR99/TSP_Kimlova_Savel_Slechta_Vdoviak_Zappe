@@ -13,6 +13,7 @@ from PIL import Image
 import numpy as np
 import xml.etree.ElementTree as ET
 from bs4 import BeautifulSoup
+import re
 
 
 def latex_to_img(latex_str, font_size=12):
@@ -93,15 +94,13 @@ def replace_html_entities(text):
 
 
 def contains_code(text):
-    code_start = text.find("<pre>")
-    code_end = text.find("</pre>")
-    return code_start != -1 and code_end != -1
+    code = re.search(r'<pre.*?>(.*?)</pre>', text, re.DOTALL)
+    return code is not None
 
 
 def get_code_substring(text):
-    code_start = text.find("<pre>")
-    code_end = text.find("</pre>")
-    return text[code_start:code_end + len("</pre>")]
+    code = re.search(r'<pre.*?>(.*?)</pre>', text, re.DOTALL).group(1)
+    return code
 
 
 def upscale_svg(svg_file_path, scale_factor):
@@ -166,7 +165,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         question = student_questions[i]
         answers = question_answers[i]
 
-        question = question.replace("<br>", "\n")
+        question = question.replace("<br>", "\n").replace("\r", "")
         code_part = None
 
         if contains_code(question):
@@ -343,7 +342,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         for j, answer in enumerate(answers):
             x_answer = x + 20
             answer_letter = chr(65 + j) + "."
-            answer = answer_letter + " " + answer.replace("$$", "$")
+            answer = answer_letter + " " + answer.replace("$$", "$").replace("\r", "")
 
             # Answer may have LaTeX math in it
             char_index = 0
