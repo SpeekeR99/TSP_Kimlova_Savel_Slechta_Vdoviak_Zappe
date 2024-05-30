@@ -13,7 +13,7 @@ services:
     networks:
       - api_network
     ports:
-      - "8081:8081"
+      - "127.0.0.1:8081:8081"
 
   mongodb_service:
     # fixed version 4.4.6: https://stackoverflow.com/questions/70818543/mongo-db-deployment-not-working-in-kubernetes-because-processor-doesnt-have-avx
@@ -22,7 +22,7 @@ services:
     networks:
       - api_network
     ports:
-      - "27017:27017"
+      - "127.0.0.1:27017:27017"
     volumes:
       - mongo_data:/data/db
   
@@ -31,3 +31,4 @@ volumes:
 
 networks:
   api_network:
+    driver: bridge
