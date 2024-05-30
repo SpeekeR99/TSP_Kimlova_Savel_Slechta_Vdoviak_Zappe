@@ -13,7 +13,7 @@ workflow:
       variables:
         PACKAGE_NAME: "web-dist"
         ENVIRONMENT: production
-        NODEJSAPP_URL: http://147.228.173.197
+        NODEJSAPP_URL: http://kivforms.xyz
 
     # any other branch = development
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
