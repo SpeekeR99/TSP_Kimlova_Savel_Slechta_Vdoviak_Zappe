@@ -12,7 +12,7 @@ const CODE_OK = 200
 
 dotenv.config()
 const port = process.env.PORT || PORT
-const app: Express = express()
+export const app: Express = express()
 
 app.use(express.json())
 
@@ -30,7 +30,7 @@ if (process.env.NODE_ENV === 'production') {
 	app.get('*', (req: Request, res: Response) => {
 		res.sendFile(path.join(DIST_DIR, 'index.html'))
 	})
-} else {
+} else if (process.env.NODE_ENV === 'development') {
 	const config = require('../../webpack.config.dev')
 	const compiler = require('webpack')(config)
 	const wdMiddleware = require('webpack-dev-middleware')(compiler)
@@ -54,6 +54,16 @@ if (process.env.NODE_ENV === 'production') {
 
 app.use(errorHandler)
 
-app.listen(port, () => {
-	console.log(`[server] listening on http://localhost:${port}`)
-})
+let server
+
+export function start() {
+	server = app.listen(port, () => {
+		console.log(`[server] listening on http://localhost:${port}`)
+	})
+	return server
+}
+
+export function close() {
+	server?.close()
+}
+
