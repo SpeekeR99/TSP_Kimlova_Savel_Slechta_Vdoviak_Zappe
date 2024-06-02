@@ -1,12 +1,8 @@
-import request from 'supertest'
 import {start, close} from '../../src/server/server'
 
-const STATUS_OK = 200
-
-let server
 
 beforeEach(() => {
-	server = start()
+	start()
 })
 
 afterEach(() => {
