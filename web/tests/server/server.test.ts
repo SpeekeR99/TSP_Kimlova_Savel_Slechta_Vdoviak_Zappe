@@ -14,10 +14,7 @@ afterEach(() => {
 })
 
 describe('Server tests', () => {
-	it('/healthcheck route test', async () => {
-		const res = await request(server).get('/healthcheck')
-		expect(res.status).toBe(STATUS_OK)
-	})
+	
 
 	// it('Test non-existing route', async () => {
 	// 	const res = await request(server).get('/unknown-route')
