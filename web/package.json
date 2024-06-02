@@ -3,7 +3,7 @@
 	"version": "1.0.0",
 	"description": "",
 	"scripts": {
-		"test": "npx jest",
+		"test": "npx jest --runInBand --detectOpenHandles",
 		"build": "tsc && webpack --config webpack.config.ts",
 		"start": "NODE_ENV=production node dist/src/server/server.js",
 		"start:dev": "NODE_ENV=development nodemon",

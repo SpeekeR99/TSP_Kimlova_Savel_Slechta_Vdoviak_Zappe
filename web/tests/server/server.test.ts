@@ -1,10 +1,16 @@
 import request from 'supertest'
-import server from '../../src/server/server'
+import {start, close} from '../../src/server/server'
 
 const STATUS_OK = 200
 
-afterAll(async () => {
-	await server.close() // Close the server after all tests are done
+let server
+
+beforeEach(() => {
+	server = start()
+})
+
+afterEach(() => {
+	close()
 })
 
 describe('Server tests', () => {
