@@ -20,7 +20,12 @@ router.post(
 		if (!response.ok) throw new Error('Failed to validate data')
 
 		const result = await response.json()
-		const csvResult = transformToCSV(result)
+		const csvResult = transformToCSV(result.result)
+		const logText = result.log
+
+		console.log(logText)
+		/* TODO: Save logText to a file and send .zip file with csvResult and logText */
+
 		res.send(csvResult)
 	})
 )

@@ -25,6 +25,17 @@ def transform_eval_output(json_data, db_data):
         "result": []
     }
 
+    log = f"Student: {student_dict['name']} {student_dict['surname']}; {student_dict['username']}; {student_dict['student_number']}\n"
+    log += "Results: "
+    for i, answers in enumerate(student_answers):
+        log += f"{str(i + 1)}"
+        for j, answer in enumerate(answers):
+            if answer == 1:
+                log += f"{chr(65 + j)}"
+        log += "; "
+    # Throw away the last "; "
+    log = log[:-2]
+
     shuffle = student_dict["shuffle"]
     question_undo_shuffle = []
     answers_undo_shuffles = []
@@ -73,4 +84,4 @@ def transform_eval_output(json_data, db_data):
     result["body_celkem"] = overall_points
     result["body_rel"] = np.round(points / overall_points, 2)
 
-    return result
+    return result, log
