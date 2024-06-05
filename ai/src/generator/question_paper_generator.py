@@ -65,6 +65,8 @@ def wrap_text(text, max_width, font, font_size, first_width=None):
 
 
 def html_strip(html):
+    html = "<pre>" + html + "</pre>"
+
     # Remove HTML tags
     soup = BeautifulSoup(html, "html.parser")
     stripped = soup.get_text()
