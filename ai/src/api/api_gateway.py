@@ -111,17 +111,21 @@ def evaluate_answers():
         os.remove("temp.pdf")
 
         result = []
+        logs = []
         for pdf in pdf_names:
             json_data, test_id = preprocess_image(collection, pdf)
 
             # Transform the output to a Moodle happy output
             db_data = collection.find_one({"test_id": test_id})
-            student_result = transform_eval_output(json_data, db_data)
+            student_result, student_log = transform_eval_output(json_data, db_data)
             result.append(student_result)
+            logs.append(student_log)
 
             os.remove(pdf)
 
-        return jsonify(result)
+        log = "\n".join(logs)
+
+        return jsonify({"result": result, "log": log})
 
     return catch_errors(inner_func)()
 
