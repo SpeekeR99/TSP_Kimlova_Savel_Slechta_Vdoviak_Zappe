@@ -5,6 +5,7 @@ import catchError from '../middleware/catch-error'
 import { Route } from '../interface'
 import { MulterFile } from 'multer'
 import { transformToCSV, validateFile } from '../service/ocrMoodleService'
+import JSZip from 'jszip'
 
 const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -20,13 +21,17 @@ router.post(
 		if (!response.ok) throw new Error('Failed to validate data')
 
 		const result = await response.json()
-		const csvResult = transformToCSV(result.result)
-		const logText = result.log
+		if (!result) throw new Error('Result is not present!')
 
-		console.log(logText)
-		/* TODO: Save logText to a file and send .zip file with csvResult and logText */
+		const { result: studentResults, log } = result
+		const csvResult = transformToCSV(studentResults)
 
-		res.send(csvResult)
+		const zip = new JSZip()
+		zip.file('result.csv', csvResult)
+		zip.file('log.txt', log)
+
+		const zipArchive = await zip.generateAsync({ type: 'nodebuffer' })
+		res.send(zipArchive)
 	})
 )
 

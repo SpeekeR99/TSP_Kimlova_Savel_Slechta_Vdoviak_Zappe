@@ -17,14 +17,11 @@ const fetchData = async (files: File[]) => {
 		})
 
 		if (response.ok) {
-			const csvData = await response.text()
-
-			const blob = new Blob([csvData], { type: 'text/csv' })
+			const blob = await response.blob()
 			const url = URL.createObjectURL(blob)
-
 			const link = document.createElement('a')
 			link.href = url
-			link.download = 'result.csv'
+			link.download = 'result.zip'
 			document.body.appendChild(link)
 			link.click()
 			document.body.removeChild(link)
