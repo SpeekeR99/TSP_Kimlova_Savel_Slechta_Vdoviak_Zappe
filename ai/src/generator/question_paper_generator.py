@@ -260,7 +260,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             y -= new_height
 
             # Draw the remaining text
-            question_text = question.split("<CODE>")
+            question_text = question.split("*CODE*")
             if len(question_text) > 1:
                 question_text = question_text[1]
                 lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
