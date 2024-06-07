@@ -101,7 +101,9 @@ def contains_code(text):
 
 
 def get_code_substring(text):
+    pre = re.search(r'<pre.*?>', text, re.DOTALL).group(0)
     code = re.search(r'<pre.*?>(.*?)</pre>', text, re.DOTALL).group(1)
+    code = pre + code + "</pre>"
     return code
 
 
@@ -131,6 +133,140 @@ def upscale_svg(svg_file_path, scale_factor):
 
     # Write the modified SVG back to the file
     tree.write(svg_file_path)
+
+
+def remove_last_occurrence(string, substring):
+    # Find the last occurrence of the substring
+    index = string.rfind(substring)
+
+    # If the substring is found, remove it
+    if index != -1:
+        return string[:index] + string[index + len(substring):]
+
+    # If the substring is not found, return the original string
+    return string
+
+
+def draw_latex_part(c, question, x, y, x_margin, label_height):
+    # Question may have LaTeX math in it
+    char_index = 0
+    question_text = ""
+    # Char stream
+    x_so_far = x
+    while char_index < len(question):
+        current_char = question[char_index]
+        if current_char == "$":
+            # First draw the text so far
+            lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
+            for line in lines:
+                c.drawString(x_so_far, y, line)
+                y -= label_height
+                x_so_far = x_margin
+            y += label_height
+            x_so_far += c.stringWidth(lines[-1], "Arial", 12)
+            question_text = ""
+
+            # Find the end of the math expression
+            question_substr = question[char_index:]
+            end_index = question_substr.find("$", 1) + char_index
+            # Add the math expression to the question text
+            latex_text = question[char_index + 1:end_index]
+            latex = latex_to_img(latex_text, font_size=120)
+
+            # Get the dimensions of the image
+            img = plt.imread(latex)
+            height, width = img.shape[:2]
+            new_height = height / 14
+            new_width = width / 14
+
+            # Draw the image
+            c.drawImage(latex, x_so_far, y - new_height / 4, width=new_width, height=new_height)
+            os.remove(latex)
+
+            x_so_far += new_width
+            if x_so_far > letter[0] - 3 * x_margin:
+                x_so_far = x_margin
+                y -= label_height
+
+            # Update the char index
+            char_index = end_index + 1
+        else:
+            question_text += current_char
+            char_index += 1
+
+    # Draw the remaining text
+    lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
+    for line in lines:
+        c.drawString(x_so_far, y, line)
+        y -= label_height
+        x = x_margin
+        x_so_far = x
+
+    return y
+
+
+def draw_code_part(c, question, code_parts, which_part, x, y, x_margin, label_height):
+    # Draw the text so far
+    question_text = question.split("*CODE*")[0]
+    y = draw_latex_part(c, question_text, x, y, x_margin, label_height)
+
+    # Highlight the code
+    code_part = code_parts[which_part]
+    highlighted_code = highlight(code_part, PythonLexer(), SvgFormatter())
+    header_utf_8 = '<?xml version="1.0" encoding="UTF-8"?>'
+    highlighted_code = highlighted_code.split("\n", 1)[1]
+    highlighted_code = header_utf_8 + highlighted_code
+
+    # Set font to Arial 12
+    highlighted_code = highlighted_code.replace("font-family=\"monospace\"", "font-family=\"Arial\"")
+    highlighted_code = highlighted_code.replace("font-size=\"14px\"", "font-size=\"12\"")
+
+    # Find any <text> tags and set the font to Arial 12
+    highlighted_code = highlighted_code.replace("<text", "<text font-family=\"Arial\" font-size=\"12\"")
+
+    # Add size to the svg
+    height_overall = len(code_part.split("\n")) * label_height
+    width_max = 1.05 * np.max([pdfmetrics.stringWidth(line, "Arial", 12) for line in code_part.split("\n")])
+    highlighted_code = highlighted_code.replace("<svg", f"<svg width='{width_max}' height='{height_overall}'")
+
+    filename = "temp" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + ".svg"
+    with open(filename, "w", encoding="utf-8") as f:
+        f.write(highlighted_code)
+
+    # Upscale the SVG so the text is readable
+    scale_factor = 5
+    upscale_svg(filename, scale_factor)
+
+    # Get the dimensions of the image
+    img = fitz.open(filename)
+    # Upscale the image when in the PDF
+    img = img[0].get_pixmap()
+    img = Image.frombytes("RGB", (img.w, img.h), img.samples)
+    filename_png = filename.replace(".svg", ".png")
+    img.save(filename_png)
+    os.remove(filename)
+
+    # Draw the image
+    x = x_margin
+    new_width = img.width / scale_factor
+    new_height = img.height / scale_factor
+    c.drawImage(filename_png, x, y - new_height, width=new_width, height=new_height)
+    os.remove(filename_png)
+
+    y -= new_height
+
+    # Draw the remaining text
+    question_text = question.split("*CODE*")
+    if len(question_text) > 1:
+        question_text = question_text[1:]
+        if len(code_parts) > which_part + 1:
+            y = draw_code_part(c, "*CODE*".join(question_text), code_parts, which_part + 1, x, y, x_margin, label_height)
+        else:
+            y = draw_latex_part(c, question_text[0], x, y, x_margin, label_height)
+
+    y -= label_height
+
+    return y
 
 
 def draw_labels(student_id, student_questions, question_answers, filename, date, student_name):
@@ -168,14 +304,21 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         answers = question_answers[i]
 
         question = question.replace("<br>", "\n").replace("\r", "")
-        code_part = None
+        code_parts = []
 
-        if contains_code(question):
+        num_of_code_parts = 0
+        while contains_code(question):
             code_part = get_code_substring(question)
             question = question.replace(code_part, "*CODE*")
             code_part = html_strip(code_part)
             code_part = wrap_text(code_part, letter[0] - 3 * x_margin, "Arial", 12)
             code_part = "\n".join(code_part)
+            if code_part != "":
+                code_parts.append(code_part)
+                num_of_code_parts += 1
+            else:
+                # If the code part is empty, remove the last occurence of "*CODE*" from the question
+                question = remove_last_occurrence(question, "*CODE*")
 
         question = html_strip(question)
 
@@ -189,9 +332,10 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         # If question with answers does not fit in the page
         lines = wrap_text(question, letter[0] - 3 * x_margin, "Arial", 12)
         overall_height = len(lines) * label_height
-        if code_part:
-            code_lines = wrap_text(code_part, letter[0] - 3 * x_margin, "Arial", 12)
-            overall_height += len(code_lines) * label_height
+        if num_of_code_parts > 0:
+            for code_part in code_parts:
+                code_lines = wrap_text(code_part, letter[0] - 3 * x_margin, "Arial", 12)
+                overall_height += len(code_lines) * label_height
 
         if y - overall_height < y_margin / 2:
             # Draw page number before starting a new page
@@ -206,125 +350,11 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         question = question_number + ": " + question.replace("$$", "$")
 
         # Question may have code in it
-        if code_part:
-            # Draw the text so far
-            question_text = question.split("*CODE*")[0]
-            lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
-            for line in lines:
-                c.drawString(x, y, line)
-                y -= label_height
-                x = x_margin
-
-            # Highlight the code
-            highlighted_code = highlight(code_part, PythonLexer(), SvgFormatter())
-            header_utf_8 = '<?xml version="1.0" encoding="UTF-8"?>'
-            highlighted_code = highlighted_code.split("\n", 1)[1]
-            highlighted_code = header_utf_8 + highlighted_code
-
-            # Set font to Arial 12
-            highlighted_code = highlighted_code.replace("font-family=\"monospace\"", "font-family=\"Arial\"")
-            highlighted_code = highlighted_code.replace("font-size=\"14px\"", "font-size=\"12\"")
-
-            # Find any <text> tags and set the font to Arial 12
-            highlighted_code = highlighted_code.replace("<text", "<text font-family=\"Arial\" font-size=\"12\"")
-
-            # Add size to the svg
-            height_overall = len(code_part.split("\n")) * label_height
-            width_max = 1.05 * np.max([pdfmetrics.stringWidth(line, "Arial", 12) for line in code_part.split("\n")])
-            highlighted_code = highlighted_code.replace("<svg", f"<svg width='{width_max}' height='{height_overall}'")
-
-            filename = "temp" + datetime.datetime.now().strftime("%Y%m%d%H%M%S%f") + ".svg"
-            with open(filename, "w", encoding="utf-8") as f:
-                f.write(highlighted_code)
-
-            # Upscale the SVG so the text is readable
-            scale_factor = 5
-            upscale_svg(filename, scale_factor)
-
-            # Get the dimensions of the image
-            img = fitz.open(filename)
-            # Upscale the image when in the PDF
-            img = img[0].get_pixmap()
-            img = Image.frombytes("RGB", (img.w, img.h), img.samples)
-            filename_png = filename.replace(".svg", ".png")
-            img.save(filename_png)
-            os.remove(filename)
-
-            # # Draw the image
-            x = x_margin
-            new_width = img.width / scale_factor
-            new_height = img.height / scale_factor
-            c.drawImage(filename_png, x, y - new_height, width=new_width, height=new_height)
-            os.remove(filename_png)
-
-            y -= new_height
-
-            # Draw the remaining text
-            question_text = question.split("<CODE>")
-            if len(question_text) > 1:
-                question_text = question_text[1]
-                lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12)
-                for line in lines:
-                    c.drawString(x, y, line)
-                    y -= label_height
-                    x = x_margin
-
-            y -= label_height
+        if num_of_code_parts > 0:
+            y = draw_code_part(c, question, code_parts, 0, x, y, x_margin, label_height)
         # Normal text
         else:
-            # Question may have LaTeX math in it
-            char_index = 0
-            question_text = ""
-            # Char stream
-            x_so_far = x
-            while char_index < len(question):
-                current_char = question[char_index]
-                if current_char == "$":
-                    # First draw the text so far
-                    lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
-                    for line in lines:
-                        c.drawString(x_so_far, y, line)
-                        y -= label_height
-                        x_so_far = x_margin
-                    y += label_height
-                    x_so_far += c.stringWidth(lines[-1], "Arial", 12)
-                    question_text = ""
-
-                    # Find the end of the math expression
-                    question_substr = question[char_index:]
-                    end_index = question_substr.find("$", 1) + char_index
-                    # Add the math expression to the question text
-                    latex_text = question[char_index + 1:end_index]
-                    latex = latex_to_img(latex_text, font_size=120)
-
-                    # Get the dimensions of the image
-                    img = plt.imread(latex)
-                    height, width = img.shape[:2]
-                    new_height = height / 14
-                    new_width = width / 14
-
-                    # Draw the image
-                    c.drawImage(latex, x_so_far, y - new_height / 4, width=new_width, height=new_height)
-                    os.remove(latex)
-
-                    x_so_far += new_width
-                    if x_so_far > letter[0] - 3 * x_margin:
-                        x_so_far = x_margin
-                        y -= label_height
-
-                    # Update the char index
-                    char_index = end_index + 1
-                else:
-                    question_text += current_char
-                    char_index += 1
-
-            # Draw the remaining text
-            lines = wrap_text(question_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
-            for line in lines:
-                c.drawString(x_so_far, y, line)
-                y -= label_height
-                x = x_margin
-                x_so_far = x
+            y = draw_latex_part(c, question, x, y, x_margin, label_height)
 
         answers_height = 0
         for j, answer in enumerate(answers):
@@ -346,60 +376,7 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
             answer_letter = chr(65 + j) + "."
             answer = answer_letter + " " + answer.replace("$$", "$").replace("\r", "")
 
-            # Answer may have LaTeX math in it
-            char_index = 0
-            answer_text = ""
-            x_so_far = x_answer
-
-            # Char stream
-            while char_index < len(answer):
-                current_char = answer[char_index]
-                if current_char == "$":
-                    # First draw the text so far
-                    lines = wrap_text(answer_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
-                    for line in lines:
-                        c.drawString(x_so_far, y, line)
-                        y -= label_height
-                        x_so_far = x_answer
-                    y += label_height
-                    x_so_far += c.stringWidth(lines[-1], "Arial", 12)
-                    answer_text = ""
-
-                    # Find the end of the math expression
-                    answer_substr = answer[char_index:]
-                    end_index = answer_substr.find("$", 1) + char_index
-                    # Add the math expression to the answer text
-                    latex_text = answer[char_index + 1:end_index]
-                    latex = latex_to_img(latex_text, font_size=120)
-
-                    # Get the dimensions of the image
-                    img = plt.imread(latex)
-                    height, width = img.shape[:2]
-                    new_height = height / 14
-                    new_width = width / 14
-
-                    # Draw the image
-                    c.drawImage(latex, x_so_far, y - new_height / 4, width=new_width, height=new_height)
-                    os.remove(latex)
-
-                    x_so_far += new_width
-                    if x_so_far > letter[0] - 3 * x_margin:
-                        x_so_far = x_answer
-                        y -= label_height
-
-                    # Update the char index
-                    char_index = end_index + 1
-                else:
-                    answer_text += current_char
-                    char_index += 1
-
-            # Draw the remaining text
-            lines = wrap_text(answer_text, letter[0] - 3 * x_margin, "Arial", 12, first_width=x_so_far)
-            for line in lines:
-                c.drawString(x_so_far, y, line)
-                y -= label_height
-                x_answer = x + 20
-                x_so_far = x_answer
+            y = draw_latex_part(c, answer, x_answer, y, x_margin, label_height)
 
     # Draw page number on the last page
     c.drawString(letter[0] / 2, y_margin / 2, str(c.getPageNumber()))
