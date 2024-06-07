@@ -189,14 +189,34 @@ def map_pages_to_students(collection, path_to_pdf):
         gray = cv2.cvtColor(student_subimage, cv2.COLOR_RGB2GRAY)
         threshed = threshold_otsu(gray, 170)
         contours = find_contours(threshed)
-        # Find specified number of circles
-        contours = sorted(contours, key=cv2.contourArea, reverse=True)[:40]
-        # Sort them top to bottom, for easier processing
-        contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
 
         # Threshold the subimage
         threshed_subimage = cv2.GaussianBlur(student_subimage, (5, 5), 0)
         threshed_subimage = threshold_mean(threshed_subimage)
+
+        # Find specified number of circles
+        contours = sorted(contours, key=cv2.contourArea, reverse=True)
+        temp_contours = []
+        for contour in contours:
+            (x, y, w, h) = cv2.boundingRect(contour)
+            temp_image = threshed_subimage[y:y + h, x:x + w]
+            blurred = cv2.medianBlur(temp_image, 5)
+            gray = cv2.cvtColor(blurred, cv2.COLOR_RGB2GRAY)
+            circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20, param1=5, param2=10, minRadius=10)
+
+            if circles is not None:
+                temp_contours.append(contour)
+                if len(temp_contours) == 40:
+                    break
+        contours = temp_contours
+
+        # Sort them top to bottom, for easier processing
+        contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
+
+        while len(contours) < 40:
+            contours = list(contours)
+            contours.append(contours[-1])
+            contours = tuple(contours)
 
         # Iterate over the circles
         for (q, j) in enumerate(np.arange(0, len(contours), 4)):
@@ -400,17 +420,36 @@ def preprocess_image(collection, path_to_image):
             gray = cv2.cvtColor(subimage, cv2.COLOR_RGB2GRAY)
             threshed = threshold_otsu(gray, 170)
             contours = find_contours(threshed)
-            # Find specified number of circles
-            contours = sorted(contours, key=cv2.contourArea, reverse=True)[:how_many_circles[i]]
-            # Sort them top to bottom, for easier processing
-            contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
-
-            # Just for showcase purposes
-            circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
 
             # Threshold the subimage
             threshed_subimage = cv2.GaussianBlur(subimage, (5, 5), 0)
             threshed_subimage = threshold_mean(threshed_subimage)
+
+            # Find specified number of circles
+            contours = sorted(contours, key=cv2.contourArea, reverse=True)
+            temp_contours = []
+            for contour in contours:
+                (x, y, w, h) = cv2.boundingRect(contour)
+                temp_image = threshed_subimage[y:y + h, x:x + w]
+                blurred = cv2.medianBlur(temp_image, 5)
+                gray = cv2.cvtColor(blurred, cv2.COLOR_RGB2GRAY)
+                circles = cv2.HoughCircles(gray, cv2.HOUGH_GRADIENT, 1, 20, param1=5, param2=10, minRadius=10)
+
+                if circles is not None:
+                    temp_contours.append(contour)
+                    if len(temp_contours) == how_many_circles[i]:
+                        break
+            contours = temp_contours
+            # Sort them top to bottom, for easier processing
+            contours = imutils.contours.sort_contours(contours, method="top-to-bottom")[0]
+
+            while len(contours) < how_many_circles[i]:
+                contours = list(contours)
+                contours.append(contours[-1])
+                contours = tuple(contours)
+
+            # Just for showcase purposes
+            circle_image = cv2.drawContours(subimage.copy(), contours, -1, (0, 255, 0), 2)
 
             if i != 0:
                 num_col = num_cols  # it is an answer grid
