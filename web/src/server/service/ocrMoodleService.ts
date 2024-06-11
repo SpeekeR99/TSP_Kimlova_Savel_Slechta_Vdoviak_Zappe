@@ -18,6 +18,9 @@ export const validateFile = async (file: MulterFile) => {
 export const transformToCSV = (content: any[]) => {
 	const flattenedcContent = content.map((res) => {
 		const { result, ...fields } = res
+
+		if (!result) throw new Error('Content does not contain result field!')
+
 		const formattedResult = result.reduce((acc, curr, i) => {
 			acc[`answer${i + 1}`] = curr.answer.join(',')
 			acc[`points${i + 1}`] = curr.points
@@ -25,6 +28,8 @@ export const transformToCSV = (content: any[]) => {
 		}, {})
 		return { ...fields, ...formattedResult }
 	})
+
+	if (flattenedcContent.length === 0) throw new Error('Empty results')
 
 	return parse(flattenedcContent)
 }
