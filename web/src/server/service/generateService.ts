@@ -22,10 +22,10 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 		const xmlData = file.buffer.toString()
 
 		xml2js.parseString(xmlData, (err, parsedString) => {
-			if (err) reject(new Error(`Error parsing XML:' ${err}`))
-
+			if (err) reject(new Error(`Error parsing XML: ${err}`))
 			const { quiz } = parsedString
-			if (!quiz) reject(new Error('XML file does not contain quiz!'))
+			if (!quiz && quiz !== '')
+				reject(new Error('XML file does not contain quiz!'))
 
 			const { question: questions } = quiz
 			if (!questions) reject(new Error('XML file does not contain questions!'))
