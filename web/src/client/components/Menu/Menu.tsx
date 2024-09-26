@@ -24,7 +24,7 @@ interface HeaderProps {
 
 interface MenuProps {
 	open: boolean
-	setOpen: (boolean) => void
+	setOpen: (open: boolean) => void
 }
 
 const Header = ({ open, handleDrawerOpen }: HeaderProps) => {

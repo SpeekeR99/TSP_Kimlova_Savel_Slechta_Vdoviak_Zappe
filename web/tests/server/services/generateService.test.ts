@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { MulterFile } from 'multer'
 import {
 	parseQuizXMLFile,

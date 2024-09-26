@@ -1,7 +1,13 @@
+# IDEs and local development
+.eslint
+.env
+.idea
+.vscode
+.eslintcache
+.stylelintcache
+
+# nodejs
 node_modules
 
+# build
 dist
-
-.env
-
-.vscode

@@ -1,1 +1,4 @@
+!.eslintrc.js
 !.prettierrc.js
+dist/*
+build/*

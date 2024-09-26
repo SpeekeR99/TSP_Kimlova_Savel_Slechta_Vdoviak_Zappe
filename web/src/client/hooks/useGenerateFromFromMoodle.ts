@@ -12,7 +12,7 @@ const fetchData = async (quizId) => {
 		})
 
 		if (response.ok) {
-			const data = await response.json()
+			// handle result 
 		} else {
 			throw new Error(`Upload failed: ${response.statusText}`)
 		}
