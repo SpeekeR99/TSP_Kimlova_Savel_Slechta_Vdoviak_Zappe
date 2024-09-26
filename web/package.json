@@ -8,7 +8,7 @@
 		"start": "NODE_ENV=production node dist/src/server",
 		"start:dev": "NODE_ENV=development nodemon",
 		"start:prod": "npm run build && npm run start",
-    	"gitlab:mr": "git push origin HEAD -u --push-option=merge_request.create"
+		"gitlab:mr": "git push origin HEAD -u --push-option=merge_request.create"
 	},
 	"repository": {
 		"type": "git",
