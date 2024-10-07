@@ -1,3 +1,4 @@
+/* eslint-disable max-len */
 import { transformToCSV } from '../../../src/server/service/ocrMoodleService'
 
 describe('OCRMoodle service', () => {

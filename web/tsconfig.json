@@ -5,6 +5,8 @@
 		"rootDir": "./",
 		"baseUrl": "./",
 		"jsx": "react",
-		"esModuleInterop": true
-	}
+		"esModuleInterop": true,
+		"types": ["jest", "node"],
+	},
+	"exclude": ["./node_modules"]
 }

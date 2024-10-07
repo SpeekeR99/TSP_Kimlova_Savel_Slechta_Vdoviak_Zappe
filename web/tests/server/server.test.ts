@@ -1,3 +1,3 @@
 describe('Server tests', () => {
-	it('empty test', async () => {})
+	it.skip('empty test', async () => { return })
 })
