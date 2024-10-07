@@ -10,6 +10,7 @@ def create_merge_request():
         result = subprocess.run(command, check=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
         
         print(result.stdout.decode('utf-8'))
+        print(result.stderr.decode('utf-8'))
     
     except subprocess.CalledProcessError as e:
         print(f"Error occurred: {e.stderr.decode('utf-8')}")
