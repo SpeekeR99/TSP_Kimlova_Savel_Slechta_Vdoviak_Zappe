@@ -1,10 +1,8 @@
 variables:
   IMAGE_NODE: node:18.18-alpine
   IMAGE_DOCKER: docker:20.10
-  IMAGE_ANSIBLE: "cytopia/ansible:2.12"
   DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
-  ANSIBLE_DIR: "ansible"
 
 workflow:
   rules:
@@ -12,15 +10,11 @@ workflow:
     - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
       variables:
         PACKAGE_NAME: "web-dist"
-        ENVIRONMENT: production
-        NODEJSAPP_URL: http://kivforms.xyz
 
     # any other branch = development
     - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
       variables:
         PACKAGE_NAME: "web-dist-dev"
-        ENVIRONMENT: development
-        NODEJSAPP_URL: http://147.228.173.196
 
 default:
   image: alpine:3.17
@@ -30,7 +24,6 @@ default:
 stages:
   - test
   - build
-  - deploy
 
 test-unit-web:
   stage: test
@@ -49,26 +42,3 @@ test-unit-web:
 #     - $DOCKER_IN_DOCKER_SERVICE
 #   script:
 #     - ./scripts/build-publish-docker.sh $PACKAGE_NAME
-
-deploy-app:
-  stage: deploy
-  image: $IMAGE_ANSIBLE
-  before_script:
-    - echo "Deploying to ${ENVIRONMENT}"
-    - which ssh-agent || ( apk --update add openssh-client )
-    - eval $(ssh-agent -s)
-    - chmod 0400 $SSH_PRIVATE_KEY
-    - ssh-add $SSH_PRIVATE_KEY
-    - mkdir -p ~/.ssh
-    - chmod 0700 ~/.ssh
-    - cp $SSH_SERVER_HOSTKEYS ~/.ssh/known_hosts
-    - chmod 0644 ~/.ssh/known_hosts
-    - apk --no-cache add tar unzip
-  script:
-    - cd $ANSIBLE_DIR
-    - "ansible-playbook -i inventories/${ENVIRONMENT:-development}/hosts webservers.yml"
-    - echo "App running at $NODEJSAPP_URL"
-  environment:
-    name: ${ENVIRONMENT}
-    url: $NODEJSAPP_URL
-  when: manual
