@@ -1,6 +1,5 @@
-import HtmlWebpackPlugin from 'html-webpack-plugin'
 import * as path from 'path'
-import webpack, { Configuration } from 'webpack'
+import webpack from 'webpack'
 import { merge } from 'webpack-merge'
 import commonConfig from './webpack.config'
 
