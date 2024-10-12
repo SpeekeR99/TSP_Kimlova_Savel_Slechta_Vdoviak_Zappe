@@ -27,17 +27,18 @@ publish-web-docker-image:
   stage: publish
   image: $IMAGE_DOCKER
   services:
-    - $DOCKER_IN_DOCKER_SERVICE
+    - name: $DOCKER_IN_DOCKER_SERVICE
+      alias: docker
   script:
     - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh web
   when: manual
-
 
 publish-ai-docker-image:
   stage: publish
   image: $IMAGE_DOCKER
   services:
-    - $DOCKER_IN_DOCKER_SERVICE
+    - name: $DOCKER_IN_DOCKER_SERVICE
+      alias: docker
   script:
     - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh ai
   when: manual
