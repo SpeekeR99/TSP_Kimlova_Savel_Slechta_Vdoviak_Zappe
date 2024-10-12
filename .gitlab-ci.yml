@@ -9,10 +9,16 @@ default:
   image: alpine:3.17
   tags:
     - kiv
+  before_script:
+    - docker info
 
 stages:
   - test
   - publish
+
+test-docker:
+  script:
+    - docker -v
 
 .test-unit-web:
   stage: test
