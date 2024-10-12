@@ -4,18 +4,6 @@ variables:
   DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
 
-workflow:
-  rules:
-    # main branch = production
-    - if: $CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH
-      variables:
-        PACKAGE_NAME: "web-dist"
-
-    # any other branch = development
-    - if: $CI_COMMIT_BRANCH != $CI_DEFAULT_BRANCH
-      variables:
-        PACKAGE_NAME: "web-dist-dev"
-
 default:
   image: alpine:3.17
   tags:
@@ -33,12 +21,22 @@ test-unit-web:
     - npm install
     - npm run test
 
-# TODO (slechtaj): enable when kiv runners are fixed
-# -> building in separate project for now, because kiv runners suck (https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986)
-# build-docker-image:
-#   stage: build
-#   image: $IMAGE_DOCKER
-#   services:
-#     - $DOCKER_IN_DOCKER_SERVICE
-#   script:
-#     - ./scripts/build-publish-docker.sh $PACKAGE_NAME
+# https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986
+publish-web-docker-image:
+  stage: build
+  image: $IMAGE_DOCKER
+  services:
+    - $DOCKER_IN_DOCKER_SERVICE
+  script:
+    - ./scripts/scripts/temp-build-since-kiv-is-bad.sh web
+  when: manual
+
+
+publish-ai-docker-image:
+  stage: build
+  image: $IMAGE_DOCKER
+  services:
+    - $DOCKER_IN_DOCKER_SERVICE
+  script:
+    - ./scripts/scripts/temp-build-since-kiv-is-bad.sh ai
+  when: manual
