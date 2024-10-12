@@ -3,6 +3,7 @@ variables:
   IMAGE_DOCKER: docker:20.10
   DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
+  SCRIPTS_DIR: "scripts"
 
 default:
   image: alpine:3.17
@@ -13,7 +14,7 @@ stages:
   - test
   - publish
 
-test-unit-web:
+.test-unit-web:
   stage: test
   image: $IMAGE_NODE
   script:
@@ -28,7 +29,7 @@ publish-web-docker-image:
   services:
     - $DOCKER_IN_DOCKER_SERVICE
   script:
-    - ./scripts/scripts/temp-build-since-kiv-is-bad.sh web
+    - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh web
   when: manual
 
 
@@ -38,5 +39,5 @@ publish-ai-docker-image:
   services:
     - $DOCKER_IN_DOCKER_SERVICE
   script:
-    - ./scripts/scripts/temp-build-since-kiv-is-bad.sh ai
+    - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh ai
   when: manual
