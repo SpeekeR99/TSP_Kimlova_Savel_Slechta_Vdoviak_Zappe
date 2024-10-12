@@ -11,7 +11,7 @@ default:
 
 stages:
   - test
-  - build
+  - publish
 
 test-unit-web:
   stage: test
@@ -23,7 +23,7 @@ test-unit-web:
 
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986
 publish-web-docker-image:
-  stage: build
+  stage: publish
   image: $IMAGE_DOCKER
   services:
     - $DOCKER_IN_DOCKER_SERVICE
@@ -33,7 +33,7 @@ publish-web-docker-image:
 
 
 publish-ai-docker-image:
-  stage: build
+  stage: publish
   image: $IMAGE_DOCKER
   services:
     - $DOCKER_IN_DOCKER_SERVICE
