@@ -5,6 +5,7 @@ REGISTRY="registry.gitlab.com"
 WEB_IMG_NAME="$REGISTRY/$REGISTRY_USER/aswi-testing/web-dist:latest"
 AI_IMG_NAME="$REGISTRY/$REGISTRY_USER/aswi-testing/ai-dist:latest"
 
+echo "[+] Logging in..."
 echo "$ASWI_GITLAB_TOKEN" | docker login $REGISTRY -u $REGISTRY_USER --password-stdin
 
 build_and_push_image() {
@@ -13,11 +14,11 @@ build_and_push_image() {
 	
 	cd "$directory"
 	
-	echo "Building image: $image_name"
+	echo "[>] Building image: $image_name"
 	docker build -t "$image_name" .
 	docker build --platform linux/amd64 -t "$image_name" .
 	
-	echo "Pushing image: $image_name"
+	echo "[>] Pushing image: $image_name"
 	docker push "$image_name"
 	
 	cd ..
