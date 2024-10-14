@@ -1,7 +1,5 @@
 variables:
   IMAGE_NODE: node:18.18-alpine
-  IMAGE_DOCKER: docker:20.10
-  DOCKER_IN_DOCKER_SERVICE: docker:20.10-dind
   WEB_DIR: "web"
   SCRIPTS_DIR: "scripts"
 
@@ -25,10 +23,6 @@ test-unit-web:
 # https://gitlab.com/gitlab-org/gitlab-runner/-/issues/1986
 publish-web-docker-image:
   stage: publish
-  image: $IMAGE_DOCKER
-  services:
-    - name: $DOCKER_IN_DOCKER_SERVICE
-      alias: docker
   script:
     - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh web
   tags:
@@ -37,10 +31,6 @@ publish-web-docker-image:
 
 publish-ai-docker-image:
   stage: publish
-  image: $IMAGE_DOCKER
-  services:
-    - name: $DOCKER_IN_DOCKER_SERVICE
-      alias: docker
   script:
     - ./$SCRIPTS_DIR/temp-build-since-kiv-is-bad.sh ai
   tags:
