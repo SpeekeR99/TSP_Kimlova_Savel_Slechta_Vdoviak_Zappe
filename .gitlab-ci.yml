@@ -8,17 +8,11 @@ variables:
 default:
   image: alpine:3.17
   tags:
-    - kiv
-  before_script:
-    - docker info
+    - personal-dont-use-pls
 
 stages:
   - test
   - publish
-
-test-docker:
-  script:
-    - docker -v
 
 .test-unit-web:
   stage: test
