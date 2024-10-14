@@ -14,7 +14,7 @@ stages:
   - test
   - publish
 
-.test-unit-web:
+test-unit-web:
   stage: test
   image: $IMAGE_NODE
   script:
