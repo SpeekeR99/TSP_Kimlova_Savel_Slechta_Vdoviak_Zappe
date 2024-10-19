@@ -5,12 +5,10 @@ matplotlib
 numpy
 opencv-python-headless
 pythreshold
-reportlab
 scikit-image
 pymongo
 qrcode
-pygments
 PyPDF2
 pyzbar
-beautifulsoup4
 deskew
+pdfkit
