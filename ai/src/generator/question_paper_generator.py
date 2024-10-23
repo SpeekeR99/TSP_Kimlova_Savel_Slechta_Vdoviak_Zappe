@@ -1,10 +1,21 @@
 import pdfkit
 import fitz
+import os
+import platform
 
 
 def draw_labels(student_id, student_questions, question_answers, filename, date, student_name):
-    # TODO: This dependency needs to be resolved in the future
-    path_to_wkhtmltopdf = r"C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe"
+    path_to_wkhtmltopdf = None
+    
+    if os.environ.get('ENV') == 'production':
+        path_to_wkhtmltopdf = "/usr/local/bin/wkhtmltopdf"
+    elif platform.system() == "Windows":
+        path_to_wkhtmltopdf = r"C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe"
+    else:
+        path_to_wkhtmltopdf = "/usr/local/bin/wkhtmltopdf"
+        
+    if not os.path.exists(path_to_wkhtmltopdf):
+        raise FileNotFoundError(f"wkhtmltopdf not found at {path_to_wkhtmltopdf}")
 
     # Initialize the HTML string
     html_string = """
