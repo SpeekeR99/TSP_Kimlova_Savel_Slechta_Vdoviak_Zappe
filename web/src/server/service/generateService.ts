@@ -11,7 +11,7 @@ const getValueFromHTMLString = (htmlString: string): string => {
 
 const getAnswers = (answers: any[]): object[] => {
 	return answers.map((answer) => {
-		const text = getValueFromHTMLString(answer.text[0])
+		const text = checkForImage(getValueFromHTMLString(answer.text[0]), answer)
 		const { fraction } = answer['$']
 		return { text, fraction }
 	})
@@ -41,7 +41,7 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 					const [id] = idnumber
 
 					const { questiontext } = question
-					const text = getValueFromHTMLString(questiontext[0].text[0])
+					const text = getQuestionText(questiontext[0])
 					const name = question.name[0].text
 
 					const answers = getAnswers(question.answer)
@@ -56,6 +56,29 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 			resolve(result)
 		})
 	})
+}
+
+const getQuestionText = (questiontextNode) => {
+	return checkForImage(getValueFromHTMLString(questiontextNode.text[0]), questiontextNode)
+}
+
+const checkForImage = (text, inputObject) => {
+	if (text.includes('<img') && inputObject.file) {
+		const regex = /<img([^>]*)src="([^"]*)"([^>]*)>/
+
+		const content = inputObject.file[0]._
+		const name = inputObject.file[0]['$']
+		const file = getValueFromHTMLString(content)
+		let extension = name.name.split('.').pop()
+		if (extension === 'svg')
+			extension = 'svg+xml'
+
+		/* replace <img src="anything" with <img src="data:image/extension;base64,file" */
+		/* Retain the alt attribute and everything else */
+		const dataURL = `data:image/${extension};base64,${file}`
+		return text.replace(regex, `<img$1src="${dataURL}"$3>`)
+	}
+	return text
 }
 
 export const generateArks = async (quiz: Quiz): Promise<Response> => {
