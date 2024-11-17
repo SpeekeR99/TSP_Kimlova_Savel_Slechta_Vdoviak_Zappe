@@ -124,12 +124,22 @@ def map_pages_to_students(collection, path_to_pdf):
 
     # Find the QR code
     qreader = QReader(model_size='s')
-    first_page = pdf[0]
+    index = 0
+    first_page = pdf[index]
     decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)
+    # If the first page has bad QR quality, try the next one
+    while (len(decoded_text) == 1 and decoded_text[0] is None) and index < len(pdf):
+        index += 1
+        next_page = pdf[index]
+        decoded_text = qreader.detect_and_decode(image=next_page, return_detections=False)
+
+    # If no QR code was found at all, return None (handled from the caller)
     if len(decoded_text) == 1 and decoded_text[0] is not None:
         qr_json = json.loads(decoded_text[0])
     else:
-        return None
+        return None, None
+
+    # Get the test ID from the QR code
     test_id = qr_json["test_id"]
 
     # Calculate the number of rectangles that can fit in the figure
@@ -158,7 +168,8 @@ def map_pages_to_students(collection, path_to_pdf):
         if len(decoded_text) == 1 and decoded_text[0] is not None:
             qr_json = json.loads(decoded_text[0])
         else:
-            return None
+            # Just skip the bad QR quality page, no need to return an error, it will be handled later
+            continue
         page_num = qr_json["page"]
 
         k = num_of_rects_in_page[page_num] + 1  # +1 for student id
@@ -265,7 +276,7 @@ def map_pages_to_students(collection, path_to_pdf):
     for student_id, pages in result_student_page_ids.items():
         result_student_page_ids[student_id] = [list(page.values())[0] for page in pages]
 
-    return result_student_page_ids
+    return result_student_page_ids, test_id
 
 
 def create_temp_pdfs(student_page_ids, path_to_pdf):
@@ -289,7 +300,7 @@ def create_temp_pdfs(student_page_ids, path_to_pdf):
     return pdf_names
 
 
-def preprocess_image(collection, path_to_image):
+def preprocess_image(collection, path_to_image, test_id):
     """
     Preprocess the image and detect filled bubbles
     :param collection: DB collection
@@ -303,16 +314,6 @@ def preprocess_image(collection, path_to_image):
     num_cols = config["answer_rect"]["grid"]["cols"]
 
     scanned_filled_images = load_pdf(path_to_image)
-
-    # Find the QR code
-    qreader = QReader(model_size='s')
-    first_page = scanned_filled_images[0]
-    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)
-    if len(decoded_text) == 1 and decoded_text[0] is not None:
-        qr_json = json.loads(decoded_text[0])
-    else:
-        return None, None
-    test_id = qr_json["test_id"]
 
     # A4 paper size in inches
     A4 = get_A4_size()
@@ -498,4 +499,4 @@ def preprocess_image(collection, path_to_image):
     output = {"student_id": ''.join(str(column.index(1)) for column in zip(*answers[0]) if 1 in column),
               "answers": [item for sublist in answers[1:] for item in sublist]}
 
-    return output, test_id
+    return output

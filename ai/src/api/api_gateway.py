@@ -106,8 +106,8 @@ def evaluate_answers():
             fp.write(file_data)
 
         # Extract text from the PDF
-        student_page_ids = map_pages_to_students(collection, "temp.pdf")
-        # If the QR codes were not found, return an error
+        student_page_ids, test_id = map_pages_to_students(collection, "temp.pdf")
+        # If the none of the QR codes worked (could not read the test ID), return an error
         if student_page_ids is None:
             return jsonify({"error": "Error reading the QR codes. Please try again."})
         pdf_names = create_temp_pdfs(student_page_ids, "temp.pdf")
@@ -116,19 +116,13 @@ def evaluate_answers():
         result = []
         logs = []
         for i, pdf in enumerate(pdf_names):
-            json_data, test_id = preprocess_image(collection, pdf)
-            # Skip if the QR code was not found for the student
-            if json_data is None:
-                err_msg = f"ERROR: Evaluation failed on page {i + 1}! Could not read the QR code! (QR code detection failed)"
-                err_dict = {"error": err_msg, "result": []}
-                result.append(err_dict)
-                logs.append(err_msg)
-                os.remove(pdf)
-                continue
+            # Preprocess the image and get the evaluation output
+            json_data = preprocess_image(collection, pdf, test_id)
 
             # Transform the output to a Moodle happy output
             db_data = collection.find_one({"test_id": test_id})
             student_result, student_log = transform_eval_output(json_data, db_data)
+
             # Skip if the student was not found in the database (most likely due to bad ID detection)
             if student_result is None:
                 err_msg = f"ERROR: Evaluation failed on page {i + 1}! Student with {json_data['student_id']} ID not found in the database! (ID detection failed)"
@@ -137,6 +131,7 @@ def evaluate_answers():
                 logs.append(err_msg)
                 os.remove(pdf)
                 continue
+
             result.append(student_result)
             logs.append(student_log)
 
