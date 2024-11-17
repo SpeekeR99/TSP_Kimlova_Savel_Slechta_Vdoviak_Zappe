@@ -6,7 +6,7 @@ import pythreshold.utils as putils
 import imutils.contours
 import json
 from PyPDF2 import PdfReader, PdfWriter
-from pyzbar.pyzbar import decode
+from qreader import QReader
 from deskew import determine_skew
 
 from ai.src.evaluator.pdf_rotator import load_pdf
@@ -123,12 +123,10 @@ def map_pages_to_students(collection, path_to_pdf):
     A4 = get_A4_size()
 
     # Find the QR code
+    qreader = QReader(model_size='s')
     first_page = pdf[0]
-    height, width, _ = first_page.shape
-    qr_subimage = first_page[:int(height*0.2), int(width*0.8):]
-    qr_subimage = cv2.medianBlur(qr_subimage, 5)
-    qr_json = decode(qr_subimage)[0].data.decode("utf-8")
-    qr_json = json.loads(qr_json)
+    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)[0]
+    qr_json = json.loads(decoded_text)
     test_id = qr_json["test_id"]
 
     # Calculate the number of rectangles that can fit in the figure
@@ -153,11 +151,8 @@ def map_pages_to_students(collection, path_to_pdf):
 
         student_id = []
 
-        height, width, _ = page.shape
-        qr_subimage = page[:int(height * 0.2), int(width * 0.8):]
-        qr_subimage = cv2.medianBlur(qr_subimage, 5)
-        qr_json = decode(qr_subimage)[0].data.decode("utf-8")
-        qr_json = json.loads(qr_json)
+        decoded_text = qreader.detect_and_decode(image=page, return_detections=False)[0]
+        qr_json = json.loads(decoded_text)
         page_num = qr_json["page"]
 
         k = num_of_rects_in_page[page_num] + 1  # +1 for student id
@@ -304,12 +299,10 @@ def preprocess_image(collection, path_to_image):
     scanned_filled_images = load_pdf(path_to_image)
 
     # Find the QR code
+    qreader = QReader(model_size='s')
     first_page = scanned_filled_images[0]
-    height, width, _ = first_page.shape
-    qr_subimage = first_page[:int(height * 0.2), int(width * 0.8):]
-    qr_subimage = cv2.medianBlur(qr_subimage, 5)
-    qr_json = decode(qr_subimage)[0].data.decode("utf-8")
-    qr_json = json.loads(qr_json)
+    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)[0]
+    qr_json = json.loads(decoded_text)
     test_id = qr_json["test_id"]
 
     # A4 paper size in inches
