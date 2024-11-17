@@ -16,6 +16,9 @@ def transform_eval_output(json_data, db_data):
         if student["id"] == student_id:
             student_dict = student
 
+    if "name" not in student_dict.keys():
+        return None, None
+
     result = {
         "jmeno": student_dict["name"],
         "prijmeni": student_dict["surname"],
