@@ -125,8 +125,11 @@ def map_pages_to_students(collection, path_to_pdf):
     # Find the QR code
     qreader = QReader(model_size='s')
     first_page = pdf[0]
-    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)[0]
-    qr_json = json.loads(decoded_text)
+    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)
+    if len(decoded_text) == 1 and decoded_text[0] is not None:
+        qr_json = json.loads(decoded_text[0])
+    else:
+        return None
     test_id = qr_json["test_id"]
 
     # Calculate the number of rectangles that can fit in the figure
@@ -151,8 +154,11 @@ def map_pages_to_students(collection, path_to_pdf):
 
         student_id = []
 
-        decoded_text = qreader.detect_and_decode(image=page, return_detections=False)[0]
-        qr_json = json.loads(decoded_text)
+        decoded_text = qreader.detect_and_decode(image=page, return_detections=False)
+        if len(decoded_text) == 1 and decoded_text[0] is not None:
+            qr_json = json.loads(decoded_text[0])
+        else:
+            return None
         page_num = qr_json["page"]
 
         k = num_of_rects_in_page[page_num] + 1  # +1 for student id
@@ -301,8 +307,11 @@ def preprocess_image(collection, path_to_image):
     # Find the QR code
     qreader = QReader(model_size='s')
     first_page = scanned_filled_images[0]
-    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)[0]
-    qr_json = json.loads(decoded_text)
+    decoded_text = qreader.detect_and_decode(image=first_page, return_detections=False)
+    if len(decoded_text) == 1 and decoded_text[0] is not None:
+        qr_json = json.loads(decoded_text[0])
+    else:
+        return None, None
     test_id = qr_json["test_id"]
 
     # A4 paper size in inches
