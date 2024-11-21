@@ -8,10 +8,12 @@ import {
 } from '@mui/material'
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import ConstructionIcon from '@mui/icons-material/Construction'
+import GoogleIcon from '@mui/icons-material/Google'
 import InfoIcon from '@mui/icons-material/Info'
 import { useNavigate } from 'react-router-dom'
 import {
 	ABOUT_PAGE,
+	GENERATE_FROM_GCROOM_PAGE,
 	GENERATE_FROM_XML_PAGE,
 	GENERATE_PAGE,
 	MAIN_PAGE,
@@ -38,6 +40,11 @@ const ListItems: MenuItem[] = [
 		name: 'Generate from xml',
 		icon: <UploadFileIcon />,
 		link: GENERATE_FROM_XML_PAGE,
+	},
+	{
+		name: 'Generate from Google clasroom',
+		icon: <GoogleIcon />,
+		link: GENERATE_FROM_GCROOM_PAGE,
 	},
 	{
 		name: 'Generation',
