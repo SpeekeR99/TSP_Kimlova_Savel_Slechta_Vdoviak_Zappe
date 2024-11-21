@@ -15,8 +15,10 @@ import {
 	GENERATE_FROM_XML_PAGE,
 	GENERATE_PAGE,
 	MAIN_PAGE,
+	STATISTICS_PAGE,
 } from '../../constants'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
+import AnalyticsIcon from '@mui/icons-material/Analytics'
 
 interface MenuItem {
 	name: string
@@ -43,6 +45,12 @@ const ListItems: MenuItem[] = [
 		divider: <Divider />,
 		link: GENERATE_PAGE,
 		disabled: true,
+	},
+	{
+		name: 'Statistics',
+		icon: <AnalyticsIcon />,
+		divider: <Divider />,
+		link: STATISTICS_PAGE,
 	},
 	{
 		name: 'About',
