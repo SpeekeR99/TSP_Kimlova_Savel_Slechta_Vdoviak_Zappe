@@ -3,6 +3,7 @@ import { Route, Routes } from 'react-router-dom'
 import {
 	ABOUT_PAGE,
 	ERROR_PAGE,
+	GENERATE_FROM_GCROOM_PAGE,
 	GENERATE_FROM_XML_PAGE,
 	GENERATE_PAGE,
 	MAIN_PAGE,
@@ -16,6 +17,7 @@ import AboutPage from './pages/AboutPage'
 import GeneratePage from './pages/GenerateFromMoodlePage'
 import GenerateFromXMLPage from './pages/GenerateFromXMLPage'
 import StatisticsPage from './pages/StatisticsPage'
+import GenerateFromGCroomPage from './pages/GenerateFromGCroomPage'
 
 const App = () => (
 	<Routes>
@@ -26,6 +28,10 @@ const App = () => (
 		<Route path={GENERATE_FROM_XML_PAGE} element={<GenerateFromXMLPage />} />
 		<Route path={NOT_FOUND_PAGE} element={<NotFoundPage />} />
 		<Route path={STATISTICS_PAGE} element={<StatisticsPage />} />
+		<Route
+			path={GENERATE_FROM_GCROOM_PAGE}
+			element={<GenerateFromGCroomPage />}
+		/>
 	</Routes>
 )
 

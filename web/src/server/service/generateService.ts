@@ -59,7 +59,10 @@ export const parseQuizXMLFile = (file: MulterFile): Promise<Question[]> => {
 }
 
 const getQuestionText = (questiontextNode) => {
-	return checkForImage(getValueFromHTMLString(questiontextNode.text[0]), questiontextNode)
+	return checkForImage(
+		getValueFromHTMLString(questiontextNode.text[0]),
+		questiontextNode
+	)
 }
 
 const checkForImage = (text, inputObject) => {
@@ -70,8 +73,7 @@ const checkForImage = (text, inputObject) => {
 		const name = inputObject.file[0]['$']
 		const file = getValueFromHTMLString(content)
 		let extension = name.name.split('.').pop()
-		if (extension === 'svg')
-			extension = 'svg+xml'
+		if (extension === 'svg') extension = 'svg+xml'
 
 		/* replace <img src="anything" with <img src="data:image/extension;base64,file" */
 		/* Retain the alt attribute and everything else */
@@ -86,6 +88,19 @@ export const generateArks = async (quiz: Quiz): Promise<Response> => {
 	const port = process.env.AI_API_PORT || PORT
 	const host = process.env.AI_API_HOST || '127.0.0.1'
 	return await fetch(`http://${host}:${port}/get_print_data`, {
+		method: 'POST',
+		headers: {
+			'Content-Type': 'application/json',
+		},
+		body: JSON.stringify(quiz),
+	})
+}
+
+export const generateArksFromGForms = async (quiz: Quiz): Promise<Response> => {
+	const PORT = 5000
+	const port = process.env.AI_API_PORT || PORT
+	const host = process.env.AI_API_HOST || '127.0.0.1'
+	return await fetch(`http://${host}:${port}/generate-gf-data`, {
 		method: 'POST',
 		headers: {
 			'Content-Type': 'application/json',
@@ -116,4 +131,21 @@ export const parseStudentCSVFile = async (
 				reject(error)
 			})
 	})
+}
+
+export const fetchGoogleFormQuizData = async (formId: string) => {
+	const url =
+		'https://script.google.com/macros/s/AKfycbx_FCRSBamdXlDUBWF4N8lmDmZg9VpPFdTbnj9j5ReBX0Qo8hdtLAUECGN6FYCV-LHj/exec'
+
+	console.log('formId', formId)
+	const response = await fetch(url, {
+		method: 'POST',
+		body: JSON.stringify({ formId }),
+	})
+
+	if (!response.ok) {
+		throw new Error('Error while retriving form data')
+	}
+
+	return await response.json()
 }

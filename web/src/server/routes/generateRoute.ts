@@ -5,7 +5,9 @@ import catchError from '../middleware/catch-error'
 import { Quiz, Route } from '../interface'
 import path from 'path'
 import {
+	fetchGoogleFormQuizData,
 	generateArks,
+	generateArksFromGForms,
 	parseQuizXMLFile,
 	parseStudentCSVFile,
 } from '../service/generateService'
@@ -44,6 +46,33 @@ router.post(
 
 		quiz.date = date
 		const response = await generateArks(quiz)
+
+		if (!response.ok) throw new Error('Failed to fetch file content')
+
+		const arrayBuffer = await response.arrayBuffer()
+		const buffer = Buffer.from(arrayBuffer)
+
+		res.send(buffer)
+	})
+)
+
+router.post(
+	'/from-gcroom',
+	upload.single('file'),
+	catchError(async (req: Request & { file: MulterFile }, res: Response) => {
+		const { file } = req
+		const { date, formId } = req.body
+
+		if (!file) throw new Error('Student file is not present!')
+		if (!date) throw new Error('Date not present!')
+		if (!formId) throw new Error('Form Id is not present!')
+
+		const quiz: Quiz = { students: null, questions: null, date: '' }
+		quiz.students = await parseStudentCSVFile(file)
+		quiz.questions = JSON.parse(await fetchGoogleFormQuizData(formId))
+		quiz.date = date
+
+		const response = await generateArksFromGForms(quiz)
 
 		if (!response.ok) throw new Error('Failed to fetch file content')
 
