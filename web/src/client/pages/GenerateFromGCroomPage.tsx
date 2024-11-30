@@ -30,7 +30,7 @@ const GenerateFromGCroomPage = () => {
 
 	return (
 		<BaseLayout>
-			<MyBreadcrump parts={['generate', 'from-Google-clasroom']} />
+			<MyBreadcrump parts={['generate', 'from-Google-Classroom']} />
 			<Box display='flex' justifyContent='flex-end'>
 				<LocalizationProvider dateAdapter={AdapterDayjs} adapterLocale='en-gb'>
 					<DatePicker

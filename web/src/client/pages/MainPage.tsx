@@ -6,7 +6,7 @@ import MyBreadcrump from '../components/MyBreadcrump'
 
 const MainPage = () => (
 	<BaseLayout>
-		<MyBreadcrump parts={['upload', 'Arks']} />
+		<MyBreadcrump parts={['upload', 'Sheets']} />
 		<MyDropzone
 			accept={{ 'application/pdf': ['.pdf'] }}
 			maxFiles={1}

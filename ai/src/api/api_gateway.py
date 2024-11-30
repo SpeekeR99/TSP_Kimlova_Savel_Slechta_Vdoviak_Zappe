@@ -90,6 +90,65 @@ def get_data():
     return catch_errors(inner_func)()
 
 
+@app.route("/generate-gf-data", methods=["POST"])
+def generate_gc_data():
+    """
+    Get the data from the request and generate the bubble sheets and question papers
+    :return: ZIP file containing the generated PDFs
+    """
+    def inner_func():
+        data = request.get_json()
+
+        questions = data["questions"]
+        students = data["students"]
+        date = data["date"]
+
+        # ISO string date to DD.MM.YYYY
+        date = date.split("T")[0].split("-")
+        date = f"{date[2]}. {date[1]}. {date[0]}"
+
+        # Preprocess the questions so they match the expected format from Moodle -- we can call our Moodle functions
+        for question in questions:
+            # GC questions do not have a name
+            question["name"] = [""]
+            # GC calls it points, Moodle calls it defaultGrade
+            question["defaultGrade"] = question["points"]
+            # GC does not have a penalty
+            question["penalty"] = 0
+
+            # GC does not have answer fractions, let's make them uniformly
+            answers = question["answers"]
+            correct_answers = 0
+            wrong_answers = 0
+            for answer in answers:
+                if answer["isCorrect"]:
+                    correct_answers += 1
+                else:
+                    wrong_answers += 1
+
+            for answer in answers:
+                # GC calls it value, Moodle calls it text
+                answer["text"] = answer["value"]
+                # Made up uniform fractions for correct and wrong answers
+                answer["fraction"] = 1 / correct_answers if answer["isCorrect"] else -1 / wrong_answers
+                answer["fraction"] *= 100  # Moodle gives the fractions as percentages
+
+        # Generate the bubble sheets and question papers as if Moodle export
+        generate_sheets(collection, questions, students, date)
+
+        pdf_files = ["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
+        zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")
+
+        # Create a zip file containing the PDF files
+        with zipfile.ZipFile(zip_file, 'w') as zipf:
+            for pdf_file in pdf_files:
+                zipf.write(pdf_file, arcname=os.path.basename(pdf_file))
+
+        return send_file(zip_file, as_attachment=True)
+
+    return catch_errors(inner_func)()
+
+
 @app.route('/test_evaluation', methods=['POST'])
 def evaluate_answers():
     """
