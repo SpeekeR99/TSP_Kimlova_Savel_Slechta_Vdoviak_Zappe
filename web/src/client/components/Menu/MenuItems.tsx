@@ -32,7 +32,7 @@ interface MenuItem {
 
 const ListItems: MenuItem[] = [
 	{
-		name: 'Upload arks',
+		name: 'Upload sheets',
 		icon: <FileUploadIcon />,
 		link: MAIN_PAGE,
 	},
@@ -42,7 +42,7 @@ const ListItems: MenuItem[] = [
 		link: GENERATE_FROM_XML_PAGE,
 	},
 	{
-		name: 'Generate from Google clasroom',
+		name: 'Generate from Google Classroom',
 		icon: <GoogleIcon />,
 		link: GENERATE_FROM_GCROOM_PAGE,
 	},
