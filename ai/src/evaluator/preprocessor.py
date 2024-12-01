@@ -298,18 +298,34 @@ def create_temp_pdfs(student_page_ids, path_to_pdf):
 
     # Create sub pdfs for each student (group by student ID over pages)
     reader = PdfReader(path_to_pdf)
-    for student_id, page_ids in student_page_ids.items():
+
+    # Function to create PDF for a single student
+    def create_student_pdf(student_id, page_ids):
         try:
             _ = int(student_id)
         except ValueError:
-            continue
+            return None
 
         writer = PdfWriter()
         for page_id in page_ids:
             writer.add_page(reader.pages[page_id])
+
         pdf_name = f"temp_{student_id}.pdf"
-        writer.write(pdf_name)
-        pdf_names.append(pdf_name)
+        with open(pdf_name, 'wb') as output_pdf:
+            writer.write(output_pdf)
+        return pdf_name
+
+    # Use ThreadPoolExecutor to parallelize PDF creation
+    with ThreadPoolExecutor() as executor:
+        # Map the create_student_pdf function to each student
+        futures = [executor.submit(create_student_pdf, student_id, page_ids)
+                   for student_id, page_ids in student_page_ids.items()]
+
+        # Collect the results as they are completed
+        for future in futures:
+            pdf_name = future.result()
+            if pdf_name:
+                pdf_names.append(pdf_name)
 
     return pdf_names
 
