@@ -3,6 +3,7 @@ import sys
 import zipfile
 from flask import Flask, request, jsonify, send_file
 from pymongo import MongoClient
+from concurrent.futures import ThreadPoolExecutor
 
 #  Add the parent directory to the path
 sys.path.append(os.path.join(os.getcwd(), ".."))
@@ -174,27 +175,39 @@ def evaluate_answers():
 
         result = []
         logs = []
-        for i, pdf in enumerate(pdf_names):
-            # Preprocess the image and get the evaluation output
-            json_data = preprocess_image(collection, pdf, test_id)
 
-            # Transform the output to a Moodle happy output
-            db_data = collection.find_one({"test_id": test_id})
-            student_result, student_log = transform_eval_output(json_data, db_data)
+        def process_pdf(i, pdf, collection, test_id):
+            try:
+                # Preprocess the image and get the evaluation output
+                json_data = preprocess_image(collection, pdf, test_id)
 
-            # Skip if the student was not found in the database (most likely due to bad ID detection)
-            if student_result is None:
-                err_msg = f"ERROR: Evaluation failed on page {i + 1}! Student with {json_data['student_id']} ID not found in the database! (ID detection failed)"
-                err_dict = {"error": err_msg, "result": []}
-                result.append(err_dict)
-                logs.append(err_msg)
+                # Transform the output to a Moodle happy output
+                db_data = collection.find_one({"test_id": test_id})
+                student_result, student_log = transform_eval_output(json_data, db_data)
+
+                # Skip if the student was not found in the database (most likely due to bad ID detection)
+                if student_result is None:
+                    err_msg = f"ERROR: Evaluation failed on page {i + 1}! Student with {json_data['student_id']} ID not found in the database! (ID detection failed)"
+                    err_dict = {"error": err_msg, "result": []}
+                    os.remove(pdf)
+                    return {"result": err_dict, "log": err_msg}
+
                 os.remove(pdf)
-                continue
+                return {"result": student_result, "log": student_log}
+            except Exception as e:
+                err_msg = f"ERROR: Evaluation failed on page {i + 1}! {e}"
+                err_dict = {"error": err_msg, "result": []}
+                os.remove(pdf)
+                return {"result": err_dict, "log": err_msg}
 
-            result.append(student_result)
-            logs.append(student_log)
+        with ThreadPoolExecutor() as executor:
+            futures = [executor.submit(process_pdf, i, pdf, collection, test_id)
+                       for i, pdf in enumerate(pdf_names)]
 
-            os.remove(pdf)
+            for future in futures:
+                output = future.result()
+                result.append(output["result"])
+                logs.append(output["log"])
 
         log = "\n".join(logs)
 
