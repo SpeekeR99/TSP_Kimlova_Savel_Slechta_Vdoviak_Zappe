@@ -8,6 +8,7 @@ import json
 from PyPDF2 import PdfReader, PdfWriter
 from qreader import QReader
 from deskew import determine_skew
+from concurrent.futures import ThreadPoolExecutor
 
 from ai.src.evaluator.pdf_rotator import load_pdf
 from ai.src.utils import load_config, get_A4_size, get_max_num_of_rects_in_page, get_num_of_rects_per_page
@@ -156,7 +157,7 @@ def map_pages_to_students(collection, path_to_pdf):
 
     student_page_ids = {}
 
-    for pdf_page_index, page in enumerate(pdf):
+    def process_page(page, pdf_page_index, num_of_rects_in_page, qreader):
         skew_detect_img = page[:int(page.shape[0] * 0.5), :int(page.shape[1] * 0.5)]
         angle = determine_skew(skew_detect_img)
         if angle != 0:
@@ -169,7 +170,7 @@ def map_pages_to_students(collection, path_to_pdf):
             qr_json = json.loads(decoded_text[0])
         else:
             # Just skip the bad QR quality page, no need to return an error, it will be handled later
-            continue
+            return None
         page_num = qr_json["page"]
 
         k = num_of_rects_in_page[page_num] + 1  # +1 for student id
@@ -262,10 +263,23 @@ def map_pages_to_students(collection, path_to_pdf):
 
         detected_student_id = ''.join(str(column.index(1)) for column in zip(*student_id) if 1 in column)
 
-        if detected_student_id not in student_page_ids:
-            student_page_ids[detected_student_id] = [{page_num: pdf_page_index}]
-        else:
-            student_page_ids[detected_student_id].append({page_num: pdf_page_index})
+        return detected_student_id, page_num, pdf_page_index
+
+    with ThreadPoolExecutor() as executor:
+        # Create a list of futures
+        futures = [executor.submit(process_page, page, pdf_page_index, num_of_rects_in_page, qreader)
+                   for pdf_page_index, page in enumerate(pdf)]
+
+        for future in futures:
+            if future.result() is None:  # Skip from the original code (here returned None)
+                continue
+            page_result = future.result()
+            if page_result:
+                detected_student_id, page_num, pdf_page_index = page_result
+                if detected_student_id not in student_page_ids:
+                    student_page_ids[detected_student_id] = [{page_num: pdf_page_index}]
+                else:
+                    student_page_ids[detected_student_id].append({page_num: pdf_page_index})
 
     # Sort the pages by the page_num key
     result_student_page_ids = {}
@@ -284,18 +298,34 @@ def create_temp_pdfs(student_page_ids, path_to_pdf):
 
     # Create sub pdfs for each student (group by student ID over pages)
     reader = PdfReader(path_to_pdf)
-    for student_id, page_ids in student_page_ids.items():
+
+    # Function to create PDF for a single student
+    def create_student_pdf(student_id, page_ids):
         try:
             _ = int(student_id)
         except ValueError:
-            continue
+            return None
 
         writer = PdfWriter()
         for page_id in page_ids:
             writer.add_page(reader.pages[page_id])
+
         pdf_name = f"temp_{student_id}.pdf"
-        writer.write(pdf_name)
-        pdf_names.append(pdf_name)
+        with open(pdf_name, 'wb') as output_pdf:
+            writer.write(output_pdf)
+        return pdf_name
+
+    # Use ThreadPoolExecutor to parallelize PDF creation
+    with ThreadPoolExecutor() as executor:
+        # Map the create_student_pdf function to each student
+        futures = [executor.submit(create_student_pdf, student_id, page_ids)
+                   for student_id, page_ids in student_page_ids.items()]
+
+        # Collect the results as they are completed
+        for future in futures:
+            pdf_name = future.result()
+            if pdf_name:
+                pdf_names.append(pdf_name)
 
     return pdf_names
 
