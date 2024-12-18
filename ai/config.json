@@ -1,4 +1,5 @@
 {
+  "gc_multiplier": 0.25,
   "colors": {
     "main_color": "black",
     "off_color": "lightgray",

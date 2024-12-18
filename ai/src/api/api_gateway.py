@@ -135,7 +135,7 @@ def generate_gc_data():
                 answer["fraction"] *= 100  # Moodle gives the fractions as percentages
 
         # Generate the bubble sheets and question papers as if Moodle export
-        generate_sheets(collection, questions, students, date)
+        generate_sheets(collection, questions, students, date, gc=True)
 
         pdf_files = ["generated_pdfs/bubble_sheets.pdf", "generated_pdfs/question_papers.pdf"]
         zip_file = os.path.join(os.getcwd(), "generated_pdfs/pdfs.zip")
