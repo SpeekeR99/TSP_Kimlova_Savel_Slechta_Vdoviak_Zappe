@@ -1,5 +1,7 @@
 import numpy as np
 
+from ai.src.utils import load_config
+
 
 def transform_eval_output(json_data, db_data):
     """
@@ -18,6 +20,11 @@ def transform_eval_output(json_data, db_data):
 
     if "name" not in student_dict.keys():
         return None, None
+
+    gc_multiplier = 1
+    if "gc" in db_data.keys() and db_data["gc"]:
+        config = load_config()
+        gc_multiplier = config["gc_multiplier"]
 
     result = {
         "jmeno": student_dict["name"],
@@ -76,6 +83,10 @@ def transform_eval_output(json_data, db_data):
                     fraction += float(correct_answers[j]["fraction"])
                 except IndexError:
                     pass
+
+        # GC penalty can be lowered, because the points are in range <-max; max> by default
+        # if gc_multiplier is 1, it does not change anything, otherwise it scales accordingly (0 is the other extreme)
+        fraction *= gc_multiplier
 
         question_points *= np.round((fraction / 100), 2)
         points += question_points

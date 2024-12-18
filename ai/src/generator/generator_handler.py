@@ -128,7 +128,7 @@ def shuffled_questions(questions_list):
     return shuffle, shuffled_list
 
 
-def generate_sheets(collection, questions_json, students_json, date):
+def generate_sheets(collection, questions_json, students_json, date, gc=False):
     """
     Generate bubble sheets and question papers for the students
     :param collection: DB collection
@@ -161,6 +161,7 @@ def generate_sheets(collection, questions_json, students_json, date):
     collection.insert_one(
         {
             "test_id": test_id,
+            "gc": gc,
             "num_of_questions": test_length,
             "students": [student.to_dict() for student in students],
             "questions": [question.to_dict() for question in questions]
@@ -169,6 +170,9 @@ def generate_sheets(collection, questions_json, students_json, date):
 
     # Generate one student-less bubble sheet
     generate_bubble_sheet(test_id, "empty", test_length, date, "")
+
+    if not os.path.exists("generated_pdfs"):
+        os.makedirs("generated_pdfs")
 
     pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
     pdfs_a = ["generated_pdfs/empty_bubble_sheet.pdf"] + [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]
