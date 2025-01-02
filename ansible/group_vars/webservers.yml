@@ -1,7 +1,0 @@
-user_name: gc_app
-user_group: gc_app
-
-gitlab_app_package_name: "{{ lookup('env', 'PACKAGE_NAME') | default('web-dist-dev', True) }}"
-
-gc_app_user: "{{ user_name }}"
-gc_app_group: "{{ user_group }}"
