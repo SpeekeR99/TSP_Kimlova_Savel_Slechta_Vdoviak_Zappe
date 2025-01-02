@@ -2,21 +2,22 @@ version: '3'
 
 services:
   web_service:
-    build: ./web
+    image: "registry.gitlab.com/jamesari/aswi-testing/web-dist:latest"
     networks:
       - api_network
     ports:
       - "8080:8080"
 
   ai_service:
-    build: ./ai
+    image: "registry.gitlab.com/jamesari/aswi-testing/ai-dist:latest"
     networks:
       - api_network
     ports:
       - "8081:8081"
 
   mongodb_service:
-    image: mongo
+    # fixed version 4.4.6: https://stackoverflow.com/questions/70818543/mongo-db-deployment-not-working-in-kubernetes-because-processor-doesnt-have-avx
+    image: mongo:4.4.6
     restart: always
     networks:
       - api_network

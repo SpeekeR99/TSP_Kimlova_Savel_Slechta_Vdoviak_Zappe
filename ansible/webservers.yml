@@ -1,8 +1,0 @@
----
-
-- name: Initial Server Configuration
-  hosts: webservers
-  roles:
-    - users
-    - docker
-    - app
