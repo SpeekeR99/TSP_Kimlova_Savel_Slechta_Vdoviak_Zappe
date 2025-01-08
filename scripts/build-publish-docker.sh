@@ -32,13 +32,15 @@ build_image() {
 
 	### Multi-platform builds tbd, currently not supported for docker driver ###
 
-	# ARM build
-	# echo "[.] Building for linux/arm64"
-	# docker build --platform linux/arm64 -t "$image_name" .
-
-	# AMD build (Konopik)
-	echo "[.] Building for linux/amd64"
-	docker build --platform linux/amd64 -t "$image_name" . || { echo "[-] Docker build failed for $image_name"; exit 1; }
+	if [ "$ARCH" = "arm64" ]; then
+		# ARM build
+		echo "[.] Building for linux/arm64"
+		docker build --platform linux/arm64 -t "$image_name" . || { echo "[-] Docker build failed for $image_name"; exit 1; }
+	else
+		# AMD build - default
+		echo "[.] Building for linux/amd64"
+		docker build --platform linux/amd64 -t "$image_name" . || { echo "[-] Docker build failed for $image_name"; exit 1; }
+	fi
 
 	echo "[<] Building image ${image_name} finished successfully"
 	
@@ -98,6 +100,19 @@ parse_args() {
 				BUILD_ONLY=true
 				shift 1
 				;;
+			'--arch'|'-a')
+				ARCH="$2"
+				if [ "$ARCH" != "amd64" ] && [ "$ARCH" != "arm64" ]; then
+					if [ -z "$ARCH" ]; then
+						echo "Arch option requires an argument"
+					else
+						echo "Invalid arch option: ${ARCH}"
+					fi
+					print_help
+					exit 1
+				fi
+				shift 2
+				;;
 			*)
 				echo "Invalid option: ${1}"
 				print_help
@@ -112,6 +127,7 @@ print_help() {
 	echo "Options:"
 	echo "	--product, -p <product>		Select specific product to work with (web, ai)"
 	echo "	--build-only, -b		Perform build only and do not publish the image"
+	echo "	--arch, -a <arch>		Select architecture to build for (amd64, arm64)"
 }
 
 
