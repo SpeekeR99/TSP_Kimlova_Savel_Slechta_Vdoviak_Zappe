@@ -2,3 +2,4 @@
 !.prettierrc.js
 dist/*
 build/*
+/doc/TSP
