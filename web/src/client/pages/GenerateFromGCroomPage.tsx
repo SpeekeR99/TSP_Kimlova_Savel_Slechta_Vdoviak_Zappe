@@ -16,6 +16,7 @@ const GenerateFromGCroomPage = () => {
 	const [date, setDate] = useState<Dayjs | null>(dayjs(Date.now()))
 	const [isDateValid, setIsDateValid] = useState<boolean>(true)
 	const [formId, setFormId] = useState<string>('')
+	const [scriptURL, setScriptURL] = useState<string>('')
 
 	const handleDateChange = (newDate: Dayjs | null) => {
 		const today = Date.now()
@@ -49,15 +50,23 @@ const GenerateFromGCroomPage = () => {
 					label='Form id'
 					placeholder='Form id'
 					fullWidth
-					sx={{ maxWidth: '100%', margin: 'auto', marginBottom: '-20%' }}
+					sx={{ maxWidth: '100%', margin: 'auto', marginBottom: '5%' }}
 					onChange={(e) => setFormId(e.target.value)}
+				/>
+				<TextField
+					id='Script url'
+					label='Script url'
+					placeholder='Script url'
+					fullWidth
+					sx={{ maxWidth: '100%', margin: 'auto', marginBottom: '-30%' }}
+					onChange={(e) => setScriptURL(e.target.value)}
 				/>
 			</Container>
 			<MyDropzone
 				accept={{ 'text/csv': ['.csv'] }}
 				maxFiles={1}
-				useAction={() => useGenerateFromGCroom(date, formId)}
-				valid={isDateValid && formId !== ''}
+				useAction={() => useGenerateFromGCroom(date, { formId, scriptURL })}
+				valid={isDateValid && formId.trim() !== '' && scriptURL.trim() !== ''}
 			/>
 		</BaseLayout>
 	)

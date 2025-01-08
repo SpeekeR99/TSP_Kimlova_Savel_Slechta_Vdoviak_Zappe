@@ -133,12 +133,11 @@ export const parseStudentCSVFile = async (
 	})
 }
 
-export const fetchGoogleFormQuizData = async (formId: string) => {
-	const url =
-		'https://script.google.com/macros/s/AKfycbx_FCRSBamdXlDUBWF4N8lmDmZg9VpPFdTbnj9j5ReBX0Qo8hdtLAUECGN6FYCV-LHj/exec'
-
-	console.log('formId', formId)
-	const response = await fetch(url, {
+export const fetchGoogleFormQuizData = async (
+	formId: string,
+	scriptURL: string
+) => {
+	const response = await fetch(scriptURL, {
 		method: 'POST',
 		body: JSON.stringify({ formId }),
 	})
