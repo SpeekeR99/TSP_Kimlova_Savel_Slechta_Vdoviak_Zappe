@@ -4,7 +4,12 @@ import { setSnackbarOpen } from '../context/snackbarContext/snackbarActions'
 import { useSnackbarContext } from '../hooks/useSnackbarContext'
 import { Dayjs } from 'dayjs'
 
-const fetchData = async (files: File[], date: string, formId: string) => {
+const fetchData = async (
+	files: File[],
+	date: string,
+	formId: string,
+	scriptURL: string
+) => {
 	if (!files) throw new Error('Files not selected')
 	if (!formId) throw new Error('Form ID is not specified')
 	if (files.length !== 1) throw new Error('Generation needs 1 file!')
@@ -14,6 +19,7 @@ const fetchData = async (files: File[], date: string, formId: string) => {
 	formData.append('file', files[0])
 	formData.append('formId', formId)
 	formData.append('date', date)
+	formData.append('scriptURL', scriptURL)
 
 	try {
 		const response = await fetch('/0/generate/from-gcroom', {
@@ -38,14 +44,17 @@ const fetchData = async (files: File[], date: string, formId: string) => {
 	}
 }
 
-export const useGenerateFromGCroom = (date: Dayjs, formId) => {
+export const useGenerateFromGCroom = (
+	date: Dayjs,
+	{ formId, scriptURL }: { formId: string; scriptURL: string }
+) => {
 	const { dispatch }: SnackbarContextType = useSnackbarContext()
 
 	const openSnackbar = (message: string, severity: string = 'success') =>
 		dispatch(setSnackbarOpen(message, severity))
 
 	return useMutation(
-		(files: File[]) => fetchData(files, date.toISOString(), formId),
+		(files: File[]) => fetchData(files, date.toISOString(), formId, scriptURL),
 		{
 			onSuccess: () => {
 				openSnackbar('Files generated succeesfully!')

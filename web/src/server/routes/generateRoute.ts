@@ -61,15 +61,18 @@ router.post(
 	upload.single('file'),
 	catchError(async (req: Request & { file: MulterFile }, res: Response) => {
 		const { file } = req
-		const { date, formId } = req.body
+		const { date, formId, scriptURL } = req.body
 
 		if (!file) throw new Error('Student file is not present!')
 		if (!date) throw new Error('Date not present!')
 		if (!formId) throw new Error('Form Id is not present!')
+		if (!scriptURL) throw new Error('Script URL is not present!')
 
 		const quiz: Quiz = { students: null, questions: null, date: '' }
 		quiz.students = await parseStudentCSVFile(file)
-		quiz.questions = JSON.parse(await fetchGoogleFormQuizData(formId))
+		quiz.questions = JSON.parse(
+			await fetchGoogleFormQuizData(formId, scriptURL)
+		)
 		quiz.date = date
 
 		const response = await generateArksFromGForms(quiz)
