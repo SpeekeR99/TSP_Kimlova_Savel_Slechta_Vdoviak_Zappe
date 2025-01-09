@@ -35,3 +35,11 @@ publish-ai-docker-image:
   tags:
     - personal-dont-use-pls
   when: manual
+
+publish-docs-docker-image:
+  stage: publish
+  script:
+    - ./$SCRIPTS_DIR/build-publish-docker.sh -p doc
+  tags:
+    - personal-dont-use-pls
+  when: manual
