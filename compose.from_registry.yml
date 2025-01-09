@@ -1,5 +1,3 @@
-version: '3'
-
 services:
   web_service:
     image: "registry.gitlab.com/jamesari/aswi-testing/web-dist:latest"
@@ -25,6 +23,13 @@ services:
       - "27017:27017"
     volumes:
       - mongo_data:/data/db
+
+  docusaurus_service:
+    image: "registry.gitlab.com/jamesari/aswi-testing/doc-dist:latest"
+    networks:
+      - api_network
+    ports:
+      - "3000:3000"
   
 volumes:
   mongo_data:

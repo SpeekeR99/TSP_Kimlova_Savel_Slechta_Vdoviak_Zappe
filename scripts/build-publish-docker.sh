@@ -7,10 +7,12 @@ REGISTRY_USER="jamesari"
 REGISTRY="registry.gitlab.com"
 WEB_IMAGE="$REGISTRY/$REGISTRY_USER/aswi-testing/web-dist:latest"
 AI_IMAGE="$REGISTRY/$REGISTRY_USER/aswi-testing/ai-dist:latest"
+DOC_IMAGE="$REGISTRY/$REGISTRY_USER/aswi-testing/doc-dist:latest"
 
 # Products
 WEB_DIRECTORY="web"
 AI_DIRECTORY="ai"
+DOC_DIRECTORY="web/doc/TSP"
 
 registry_login() {
 	echo "[+] Logging in..."
@@ -65,6 +67,10 @@ build_web() {
 	build_image "$WEB_DIRECTORY" "$WEB_IMAGE"
 }
 
+build_doc() {
+	build_image "$DOC_DIRECTORY" "$DOC_IMAGE"
+}
+
 build_and_publish_web() {
 	build_web
 	push_image "$WEB_IMAGE"
@@ -73,6 +79,11 @@ build_and_publish_web() {
 build_and_publish_ai() {
 	build_ai
 	push_image "$AI_IMAGE"
+}
+
+build_and_publish_doc() {
+	build_doc
+	push_image "$DOC_IMAGE"
 }
 
 parse_args() {
@@ -84,7 +95,7 @@ parse_args() {
 				;;
 			'--product'|'-p')
 				PRODUCT="$2"
-				if [ "$PRODUCT" != "web" ] && [ "$PRODUCT" != "ai" ]; then
+				if [ "$PRODUCT" != "web" ] && [ "$PRODUCT" != "ai" ] && [ "$PRODUCT" != "doc" ]; then
 					if [ -z "$PRODUCT" ]; then
 						echo "Product option requires an argument"
 
@@ -140,6 +151,8 @@ run() {
 			build_web
 		elif [ "$PRODUCT" = "ai" ]; then
 			build_ai
+		elif [ "$PRODUCT" = "doc" ]; then
+			build_doc
 		else
 			build_web
 			build_ai
@@ -151,6 +164,8 @@ run() {
 			build_and_publish_web
 		elif [ "$PRODUCT" = "ai" ]; then
 			build_and_publish_ai
+		elif [ "$PRODUCT" = "doc" ]; then
+			build_and_publish_doc
 		else
 			build_and_publish_web
 			build_and_publish_ai
