@@ -18,7 +18,7 @@ import {
 	GENERATE_PAGE,
 	MAIN_PAGE,
 	STATISTICS_PAGE,
-} from '../../constants'
+} from '../../consts/constants'
 import UploadFileIcon from '@mui/icons-material/UploadFile'
 import AnalyticsIcon from '@mui/icons-material/Analytics'
 
