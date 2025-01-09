@@ -44,8 +44,8 @@ Dále je v tomto konfiguračním souboru možné nastavit `Google Classroom mult
 
 ### Vygenerování .pdf souborů na základě Moodle dat
 
-- API na adrese http://localhost:5000/get_print_data čeká na **.json** soubor v podobě pole objektů, kde jednotlivé objekty jsou jednotlivé otázky v předem daném formátu (podle Moodle) 
-- Vrací **.zip** soubor s dvěma .pdf soubory - jedná se o **mergnuté .pdf** soubory jednotlivých otázkových souborů (resp. záznamových archů) 
+- API na adrese http://localhost:8081/get_print_data čeká na **.json** soubor v podobě pole objektů, kde jednotlivé objekty jsou jednotlivé otázky v předem daném formátu (podle Moodle) 
+- Vrací **.zip** soubor se dvěma .pdf soubory - jedná se o **mergnuté .pdf** soubory jednotlivých otázkových souborů (resp. záznamových archů) 
 - **Adresa: /get_print_data**
 - **Metoda: POST**
 - **Vstup: .json (export Moodle)**
@@ -53,9 +53,9 @@ Dále je v tomto konfiguračním souboru možné nastavit `Google Classroom mult
 
 ### Vygenerování .pdf souborů na základě Google Classroom dat
 
-- API na adrese http://localhost:5000/generate-gf-data čeká na **.json** soubor v podobě pole objektů, kde jednotlivé objekty jsou jednotlivé otázky v předem daném formátu (podle Google Classroom)
+- API na adrese http://localhost:8081/generate-gf-data čeká na **.json** soubor v podobě pole objektů, kde jednotlivé objekty jsou jednotlivé otázky v předem daném formátu (podle Google Classroom)
 - Prakticky se interně převádí na formát, který je následně zpracován stejně jako **Moodle data**
-- Vrací **.zip** soubor s dvěma .pdf soubory - jedná se o **mergnuté .pdf** soubory jednotlivých otázkových souborů (resp. záznamových archů)
+- Vrací **.zip** soubor se dvěma .pdf soubory - jedná se o **mergnuté .pdf** soubory jednotlivých otázkových souborů (resp. záznamových archů)
 - **Adresa: /generate-gf-data**
 - **Metoda: POST**
 - **Vstup: .json (export Google Classroom)**
@@ -63,7 +63,7 @@ Dále je v tomto konfiguračním souboru možné nastavit `Google Classroom mult
 
 ### Vyhodnocení naskenovaného .pdf testu 
 
-- API na adrese http://localhost:5000/test_evaluation čeká na **.pdf** soubor, který je následně zpracován a vyhodnocen jako naskenovaný vyplněný test 
+- API na adrese http://localhost:8081/test_evaluation čeká na **.pdf** soubor, který je následně zpracován a vyhodnocen jako naskenovaný vyplněný test 
 - Vrací **.json** odpověď (**momentálně** v podobě slovníku, kde na klíči "student_id" je ID daného studenta a na klíči "answers" je seřazené pole (dle původního .pdf souboru), kde ke každé otázce je vráceno pole odpovědí 1/0 (zaškrtnuto / nezaškrtnuto) 
 - **Adresa: /test_evaluation**
 - **Metoda: POST**
