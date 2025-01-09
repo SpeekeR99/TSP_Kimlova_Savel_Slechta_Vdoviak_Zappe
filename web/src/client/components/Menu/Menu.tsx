@@ -43,6 +43,11 @@ const Header = ({ open, handleDrawerOpen }: HeaderProps) => {
 					<MenuIcon />
 				</IconButton>
 				<Typography variant='h5' component='div' sx={{ flexGrow: 1 }}>
+					<img
+						src='/garbage.ico' // Path relative to the public folder
+						alt='Garbage Icon'
+						style={{ width: '20px', height: '20px', marginRight: '8px' }}
+					/>
 					ADT exam tool
 				</Typography>
 				<MenuSwitch onChange={toggleTheme} checked={themeMode === DARK_MODE} />

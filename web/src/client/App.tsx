@@ -9,7 +9,7 @@ import {
 	MAIN_PAGE,
 	NOT_FOUND_PAGE,
 	STATISTICS_PAGE,
-} from './constants'
+} from './consts/constants'
 import MainPage from './pages/MainPage'
 import ErrorPage from './pages/ErrorPage'
 import NotFoundPage from './pages/NotFoundPage'

@@ -133,6 +133,28 @@ export const parseStudentCSVFile = async (
 	})
 }
 
+export const parseResultCSVFile = async (file: MulterFile): Promise<any> => {
+	const csvData = iconv.decode(file.buffer, 'windows-1250')
+
+	const results = []
+	return new Promise((resolve, reject) => {
+		const stream = Readable.from([csvData])
+
+		stream
+			.pipe(csv({ separator: ',' }))
+			.on('data', (data) => {
+				results.push(data)
+			})
+
+			.on('end', () => {
+				resolve(results)
+			})
+			.on('error', (error) => {
+				reject(error)
+			})
+	})
+}
+
 export const fetchGoogleFormQuizData = async (
 	formId: string,
 	scriptURL: string
@@ -147,4 +169,32 @@ export const fetchGoogleFormQuizData = async (
 	}
 
 	return await response.json()
+}
+
+export const processResultData = async (csvData: any[]) => {
+	const INDEX = 6
+
+	const addToArray = ({ key, val, arr }) => {
+		const { newKey, index } = (() => {
+			if (key.startsWith('answer'))
+				return { index: parseInt(key.slice(INDEX), 10), newKey: 'answer' }
+			else return { index: parseInt(key.slice(INDEX), 10), newKey: 'points' }
+		})()
+
+		if (arr.length < index) arr.push({})
+		arr[index - 1][newKey] = val
+	}
+
+	return csvData.map((e) => {
+		return Object.entries(e).reduce(
+			(acc, [key, val]) => {
+				if (key.startsWith('answer') || key.startsWith('points'))
+					addToArray({ key, val, arr: acc.result })
+				else acc[key] = val
+
+				return acc
+			},
+			{ result: [] }
+		)
+	})
 }

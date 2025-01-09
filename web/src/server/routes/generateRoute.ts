@@ -9,8 +9,11 @@ import {
 	generateArks,
 	generateArksFromGForms,
 	parseQuizXMLFile,
+	parseResultCSVFile,
 	parseStudentCSVFile,
+	processResultData,
 } from '../service/generateService'
+import { prepareDataForStatistics } from '../service/graphService'
 
 const router: Router = express.Router()
 const upload = multer({ storage: multer.memoryStorage() })
@@ -83,6 +86,24 @@ router.post(
 		const buffer = Buffer.from(arrayBuffer)
 
 		res.send(buffer)
+	})
+)
+
+router.post(
+	'/statistics',
+	upload.single('file'),
+	catchError(async (req: Request & { file: MulterFile }, res: Response) => {
+		const { file } = req
+
+		if (!file) throw new Error('Student file is not present!')
+
+		const data = await parseResultCSVFile(file)
+		const result = await processResultData(data)
+		const resultData = await prepareDataForStatistics(result)
+
+		if (!result || !resultData) throw new Error('Error processing file!')
+
+		res.json(resultData)
 	})
 )
 
