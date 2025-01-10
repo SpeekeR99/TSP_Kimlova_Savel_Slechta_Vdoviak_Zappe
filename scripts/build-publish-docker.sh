@@ -136,9 +136,9 @@ parse_args() {
 print_help() {
 	echo "Usage: ${0} [OPTIONS]"
 	echo "Options:"
-	echo "	--product, -p <product>		Select specific product to work with (web, ai)"
+	echo "	--product, -p <product>		Select specific product to work with (web, ai or doc)"
 	echo "	--build-only, -b		Perform build only and do not publish the image"
-	echo "	--arch, -a <arch>		Select architecture to build for (amd64, arm64)"
+	echo "	--arch, -a <arch>		Select architecture to build for (amd64, arm64), defaults to amd64"
 }
 
 
