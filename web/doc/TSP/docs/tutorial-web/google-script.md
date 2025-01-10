@@ -5,8 +5,6 @@ sidebar_label: Zprovoznění GC generování
 
 # Zprovoznění google classroom generování
 
-# Jak vytvořit Google Apps Script a nasadit ho jako webovou aplikaci
-
 Tento návod popisuje jednoduché kroky k vytvoření Google Apps Scriptu a jeho nasazení jako webové aplikace. URL této aplikace bude potřeba ke generování dotazníků za pomocí google forms.
 
 ---
