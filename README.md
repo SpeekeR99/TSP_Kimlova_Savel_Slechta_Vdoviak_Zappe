@@ -99,7 +99,7 @@ Aplikace obsahuje konfigurace pro doplňky *eslint* a *prettier*. Je vhodné si 
 
 ### Build docker images
 
-Build se provávdí skrze skript `build-publish-docker.sh`, pro nápovědu spustě `./scripts/build-publish-docker.sh --help`:
+Build se provávdí skrze skript `build-publish-docker.sh`, pro nápovědu spusťte `./scripts/build-publish-docker.sh --help`:
 
 ```text
 Usage: ./scripts/build-publish-docker.sh [OPTIONS]
