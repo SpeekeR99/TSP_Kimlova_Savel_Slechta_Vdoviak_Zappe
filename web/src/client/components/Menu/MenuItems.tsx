@@ -9,6 +9,7 @@ import {
 import FileUploadIcon from '@mui/icons-material/FileUpload'
 import ConstructionIcon from '@mui/icons-material/Construction'
 import GoogleIcon from '@mui/icons-material/Google'
+import DescriptionIcon from '@mui/icons-material/Description'
 import InfoIcon from '@mui/icons-material/Info'
 import { useNavigate } from 'react-router-dom'
 import {
@@ -60,6 +61,11 @@ const ListItems: MenuItem[] = [
 		link: STATISTICS_PAGE,
 	},
 	{
+		name: 'Doc',
+		icon: <DescriptionIcon />,
+		link: 'http://localhost:3000',
+	},
+	{
 		name: 'About',
 		icon: <InfoIcon />,
 		link: ABOUT_PAGE,
@@ -68,11 +74,21 @@ const ListItems: MenuItem[] = [
 
 const MenuItems: FC = () => {
 	const navigate = useNavigate()
+
+	const handleClick = ({ link, disabled }) => {
+		if (disabled) return
+		if (link.startsWith('http://')) window.location.href = link
+		else navigate(link)
+	}
+
 	return (
 		<>
 			{ListItems.map(({ name, icon, divider, link, disabled }: MenuItem) => (
 				<Fragment key={name}>
-					<ListItem disablePadding onClick={() => !disabled && navigate(link)}>
+					<ListItem
+						disablePadding
+						onClick={() => handleClick({ link, disabled })}
+					>
 						<ListItemButton disabled={disabled}>
 							<ListItemIcon>{icon}</ListItemIcon>
 							<ListItemText primary={name} style={{ marginLeft: '-20px' }} />

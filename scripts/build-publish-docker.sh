@@ -156,6 +156,7 @@ run() {
 		else
 			build_web
 			build_ai
+			build_doc
 		fi
 	else
 		echo "[*] Initiating build and publish"
@@ -169,6 +170,7 @@ run() {
 		else
 			build_and_publish_web
 			build_and_publish_ai
+			build_and_publish_doc
 		fi
 	fi
 }
