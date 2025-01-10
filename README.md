@@ -93,5 +93,45 @@ Node verze 18.18.0 nebo Node libovolné verze a NVM (*node package manager*)
 
 Aplikace obsahuje konfigurace pro doplňky *eslint* a *prettier*. Je vhodné si do vscode tyto doplňky nainstalovat.
 
-### Basic usage:
-todo
+## cicd
+
+*codeowners*: Jakub Šlechta
+
+### Build docker images
+
+Build se provávdí skrze skript `build-publish-docker.sh`, pro nápovědu spustě `./scripts/build-publish-docker.sh --help`:
+
+```text
+Usage: ./scripts/build-publish-docker.sh [OPTIONS]
+Options:
+        --product, -p <product>         Select specific product to work with (web, ai or doc)
+        --build-only, -b                Perform build only and do not publish the image
+        --arch, -a <arch>               Select architecture to build for (amd64, arm64), defaults to amd64
+```
+
+Například, pokud cheme udělat build a publish pro všechny části projektu (web, ai, dokumentace) a architekturu amd64, tak pouze spustíme:
+
+```sh
+./scripts/build-publish-docker.sh
+```
+
+Pokud budeme chtít například udělat nový build (bez publishe) ai části pro architekturu arm64, spustíme:
+
+```sh
+./scripts/build-publish-docker.sh -b --arch arm64 --product ai
+```
+
+### Před publishováním
+
+Ve skriptu `build-publish-docker.sh` najdete dvě proměnné, které je třeba upravit:
+
+```
+REGISTRY_USER - uživatel, pod kterým se budeme přihlašovat
+REGISTRY - registry, kam budeme ukládat buildnuté images
+```
+
+Dále je nuté přidat do vašeho enviromentu proměnnou `ASWI_GITLAB_TOKEN` (klidně můžete přejmenovat ;)), která bude obsahovat access token k registry do kterého budete ukládat buildnuté images.
+
+Pozn.: pokud skript používate v CI workflows, přidejte token do envu v projektu, CICD pipelina je tam už připravená.
+
+
