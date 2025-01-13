@@ -20,14 +20,20 @@ def show_images(titles, images):
     :param titles: List of titles
     :param images: List of images
     """
+    # Create a figure
     fig, axs = plt.subplots(1, len(images), figsize=(len(images) * 10, 10))
     fig.tight_layout()
+
+    # If there is only one image, axs is not a list
     if len(images) == 1:
         axs = [axs]
+
+    # Display the images
     for ax, title, image in zip(axs, titles, images):
         ax.imshow(image, cmap="gray" if len(image.shape) == 2 else None)
         ax.set_title(title)
         ax.axis("off")
+
     plt.show()
 
 
@@ -107,6 +113,12 @@ def find_edges(image):
 
 
 def rotate_img(image, angle):
+    """
+    Rotate the image by the specified angle (in degrees)
+    :param image: Image
+    :param angle: Angle (in degrees)
+    :return: Rotated image
+    """
     h, w = image.shape[:2]
     cX, cY = (w//2, h//2)
     M = cv2.getRotationMatrix2D((cX, cY), angle, 1)
@@ -115,6 +127,12 @@ def rotate_img(image, angle):
 
 
 def map_pages_to_students(collection, path_to_pdf):
+    """
+    Map the pages to students based on the student ID (and of course the test ID - QR code)
+    :param collection: DB collection
+    :param path_to_pdf: Path to the PDF file (with the scanned pages (filled bubbles))
+    :return: Dictionary containing the student IDs and the corresponding pages
+    """
     # Load the configuration file
     config = load_config()
 
@@ -158,6 +176,15 @@ def map_pages_to_students(collection, path_to_pdf):
     student_page_ids = {}
 
     def process_page(page, pdf_page_index, num_of_rects_in_page, qreader):
+        """
+        Process a single page
+        Used for parallel processing
+        :param page: Page
+        :param pdf_page_index: Global index of the page
+        :param num_of_rects_in_page: Number of rectangles in each page
+        :param qreader: QR code reader
+        :return: Student ID, page number, and PDF page index (or None if the QR code was not read)
+        """
         skew_detect_img = page[:int(page.shape[0] * 0.5), :int(page.shape[1] * 0.5)]
         angle = determine_skew(skew_detect_img)
         if angle != 0:
@@ -265,6 +292,7 @@ def map_pages_to_students(collection, path_to_pdf):
 
         return detected_student_id, page_num, pdf_page_index
 
+    # Use ThreadPoolExecutor to parallelize the processing
     with ThreadPoolExecutor() as executor:
         # Create a list of futures
         futures = [executor.submit(process_page, page, pdf_page_index, num_of_rects_in_page, qreader)
@@ -294,6 +322,12 @@ def map_pages_to_students(collection, path_to_pdf):
 
 
 def create_temp_pdfs(student_page_ids, path_to_pdf):
+    """
+    Create temporary PDFs for each student
+    :param student_page_ids: Dictionary containing the student IDs and the corresponding pages
+    :param path_to_pdf: Path to the PDF file
+    :return: List of temporary PDF names
+    """
     pdf_names = []
 
     # Create sub pdfs for each student (group by student ID over pages)
@@ -301,7 +335,14 @@ def create_temp_pdfs(student_page_ids, path_to_pdf):
 
     # Function to create PDF for a single student
     def create_student_pdf(student_id, page_ids):
+        """
+        Create a PDF for a single student
+        :param student_id: Student ID
+        :param page_ids: List of page IDs
+        :return: Path to the temporary PDF
+        """
         try:
+            # Check if the student ID is an integer
             _ = int(student_id)
         except ValueError:
             return None

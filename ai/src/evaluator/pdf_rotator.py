@@ -25,7 +25,7 @@ def load_pdf(file_path):
         gray = cv2.threshold(gray, 200, 255, cv2.THRESH_BINARY)[1]
         height, width, _ = image.shape
         rect = gray[:int(height*0.2), int(width*0.85):]
-        # find rectangular contours
+        # Find rectangular contours
         contours, _ = cv2.findContours(
             rect, cv2.RETR_TREE, cv2.CHAIN_APPROX_SIMPLE)
         rotate = True
@@ -38,4 +38,5 @@ def load_pdf(file_path):
             image = np.rot90(image, 2)  # Rotate image 180 degrees
 
         images.append(image)
+
     return images

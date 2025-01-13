@@ -4,16 +4,28 @@ import os
 import platform
 
 
-def draw_labels(student_id, student_questions, question_answers, filename, date, student_name):
+def generate_question_paper(student_id, student_questions, question_answers, date, student_name):
+    """
+    Generate a question paper in PDF format
+    :param student_id: ID of the student
+    :param student_questions: Questions of the student
+    :param question_answers: Answers to the questions
+    :param date: Date of the test
+    :param student_name: Name of the student
+    """
+    # Filename of the generated PDF (output)
+    filename = 'generated_pdfs/' + str(student_id) + '_question_paper.pdf'
+
+    # Initialize the path to wkhtmltopdf
     path_to_wkhtmltopdf = None
-    
-    if os.environ.get('ENV') == 'production':
+
+    if os.environ.get('ENV') == 'production':  # Linux container
         path_to_wkhtmltopdf = "/usr/local/bin/wkhtmltopdf"
-    elif platform.system() == "Windows":
+    elif platform.system() == "Windows":  # Windows development
         path_to_wkhtmltopdf = r"C:/Program Files/wkhtmltopdf/bin/wkhtmltopdf.exe"
-    else:
+    else:  # default to Linux
         path_to_wkhtmltopdf = "/usr/local/bin/wkhtmltopdf"
-        
+
     if not os.path.exists(path_to_wkhtmltopdf):
         raise FileNotFoundError(f"wkhtmltopdf not found at {path_to_wkhtmltopdf}")
 
@@ -85,8 +97,3 @@ def draw_labels(student_id, student_questions, question_answers, filename, date,
         doc.new_page()
         doc.saveIncr()
     doc.close()
-
-
-def generate_question_paper(student_id, student_questions, question_answers, date, student_name):
-    file_path = 'generated_pdfs/' + str(student_id) + '_question_paper.pdf'
-    draw_labels(student_id, student_questions, question_answers, file_path, date, student_name)

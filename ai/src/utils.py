@@ -32,7 +32,7 @@ def get_A4_size():
     :return: A4 paper size in inches
     """
     cm = 1 / 2.54  # Centimeters in inches
-    A4 = (29.7 * cm, 21.0 * cm)
+    A4 = (29.7 * cm, 21.0 * cm)  # A4 paper size in inches
     
     return A4
 
