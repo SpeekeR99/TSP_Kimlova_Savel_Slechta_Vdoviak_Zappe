@@ -171,12 +171,15 @@ def generate_sheets(collection, questions_json, students_json, date, gc=False):
     # Generate one student-less bubble sheet
     generate_bubble_sheet(test_id, "empty", test_length, date, "")
 
+    # Mkdir if not exists
     if not os.path.exists("generated_pdfs"):
         os.makedirs("generated_pdfs")
 
+    # PDFs to be merged
     pdfs_q = [f"generated_pdfs/{student.id}_question_paper.pdf" for student in students]
     pdfs_a = ["generated_pdfs/empty_bubble_sheet.pdf"] + [f"generated_pdfs/{student.id}_bubble_sheet.pdf" for student in students]
 
+    # Merge the PDFs
     merged_pdf_q = fitz.open()
     merged_pdf_a = fitz.open()
 
@@ -185,8 +188,10 @@ def generate_sheets(collection, questions_json, students_json, date, gc=False):
     for pdf_a in pdfs_a:
         merged_pdf_a.insert_pdf(fitz.open(pdf_a))
 
+    # Save the merged PDFs
     merged_pdf_q.save("generated_pdfs/question_papers.pdf")
     merged_pdf_a.save("generated_pdfs/bubble_sheets.pdf")
 
+    # Remove the temporary PDFs
     for pdf in pdfs_q + pdfs_a:
         os.remove(pdf)
