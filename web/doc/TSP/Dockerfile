@@ -2,7 +2,7 @@ FROM node:18.18-alpine
 
 WORKDIR /web/doc/TSP
 
-COPY package*.json .
+COPY package.json .
 
 RUN npm install
 
