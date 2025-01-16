@@ -58,6 +58,14 @@ const exportFullFormDetails = (formId) => {
 					value: choice.getValue(),
 					isCorrect: choice.isCorrectAnswer ? choice.isCorrectAnswer() : false,
 				}))
+            else if (item.getType() === FormApp.ItemType.CHECKBOX) {
+                const checkboxQuestion = item.asCheckboxItem();
+                itemData.points = checkboxQuestion.getPoints();
+                itemData.id = checkboxQuestion.getId();
+                itemData.answers = checkboxQuestion.getChoices().map((choice) => ({
+                    value: choice.getValue(),
+                    isCorrect: choice.isCorrectAnswer ? choice.isCorrectAnswer() : false,
+                }))
 			} else if (
 				item.getType() === FormApp.ItemType.TEXT ||
 				item.getType() === FormApp.ItemType.PARAGRAPH_TEXT
